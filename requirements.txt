@@ -1,0 +1,30 @@
+pytz
+requests
+gunicorn
+python-decouple
+
+# django 4.2 dev version
+django==4.2.3
+
+djangorestframework
+django-timezone-field 
+django-cors-headers
+uvicorn
+httptools
+
+psycopg2-binary
+whitenoise
+dj-database-url
+
+celery
+redis
+django-celery-beat
+aiohttp
+
+# Telegram
+pyrogram
+TgCrypto
+python-telegram-bot==v20.5
+
+# caching
+django-redis
