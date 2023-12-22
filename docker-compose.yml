@@ -22,7 +22,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: reforward_django
-    command: bash -c "python manage.py migrate && python manage.py runserver --noreload 0.0.0.0:8000"
+    command: bash -c "python manage.py migrate && gunicorn --bind :8000 --workers 2 --worker-class uvicorn.workers.UvicornWorker reforward.asgi:application"
     ports:
       - '8000:8000'
     env_file:
@@ -30,12 +30,12 @@ services:
     depends_on:
       - db
 
-  bot:
+  userbot:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: reforward_bot
-    command: python run_bot.py
+    container_name: reforward_userbot
+    command: python run_userbot.py
     env_file:
       - ./.env
     depends_on:

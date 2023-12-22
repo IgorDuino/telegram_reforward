@@ -1,7 +1,7 @@
 import asyncio
 
 import telegram
-from telegram.ext import MessageHandler, filters, Application, CommandHandler
+from telegram.ext import Application, CommandHandler
 
 from reforward.settings import TELEGRAM_TOKEN
 from tgbot.bot.handle_start import start_handler
