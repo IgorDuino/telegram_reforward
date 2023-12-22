@@ -1,0 +1,163 @@
+import django
+
+django.setup()
+
+
+from reforward.settings import TELEGRAM_USERBOT_SESSION_STRING
+from django.db.models import Q
+
+from pyrogram import Client, filters
+from pyrogram.types import Message
+from pyrogram.enums import ParseMode
+import re
+import logging
+from tgbot.models import User, Filter, FilterActionEnum, Rule, Forwarding
+
+
+logger = logging.getLogger(__name__)
+
+app = Client(
+    "",
+    api_id=0,
+    api_hash="",
+    session_string=TELEGRAM_USERBOT_SESSION_STRING,
+    in_memory=True,
+)
+
+
+@app.on_deleted_messages()
+def deleted_messages_handler(client: Client, messages: list[Message]):
+    for message in messages:
+        for forwarding in Forwarding.objects.filter(original_message_id=message.id).all():
+            try:
+                client.delete_messages(
+                    chat_id=forwarding.rule.a_chat_id, message_ids=forwarding.new_message_id
+                )
+            except Exception as e:
+                pass
+            try:
+                client.delete_messages(
+                    chat_id=forwarding.rule.b_chat_id, message_ids=forwarding.new_message_id
+                )
+            except Exception as e:
+                pass
+
+            forwarding.delete()
+
+        for forwarding in Forwarding.objects.filter(new_message_id=message.id).all():
+            try:
+                client.delete_messages(
+                    chat_id=forwarding.rule.a_chat_id, message_ids=forwarding.original_message_id
+                )
+            except Exception as e:
+                pass
+            try:
+                client.delete_messages(
+                    chat_id=forwarding.rule.b_chat_id, message_ids=forwarding.original_message_id
+                )
+            except Exception as e:
+                pass
+
+            forwarding.delete()
+
+
+@app.on_message(filters=filters.command("getid"))
+def getid_handler(client: Client, message: Message):
+    requested_chat_id = message.chat.id
+
+    if message.chat.username:
+        name = f"@{message.chat.username}"
+    elif message.chat.title:
+        name = message.chat.title
+    elif message.chat.first_name or message.chat.last_name:
+        name = f"{message.chat.first_name or ''} {message.chat.last_name or ''}"
+    else:
+        name = ""
+
+    client.delete_messages(chat_id=message.chat.id, message_ids=message.id)
+    client.send_message(
+        chat_id=client.get_me().id,
+        text=f"Запрошенный ID {name}: <code>{requested_chat_id}</code>",
+        parse_mode=ParseMode.HTML,
+    )
+    client.mark_chat_unread(chat_id=client.get_me().id)
+
+
+@app.on_message()
+def message_handler(client: Client, message: Message):
+    rules_a = Rule.objects.filter(a_chat_id=message.chat.id, is_active=True).all()
+    rules_b = Rule.objects.filter(b_chat_id=message.chat.id, direction="X", is_active=True).all()
+    rules = list(rules_a) + list(rules_b)
+
+    for rule in rules:
+        skip = False
+        filters = Filter.objects.filter(Q(is_general=True) | Q(rule=rule))
+        for filter in filters:
+            if not filter.is_match_on_message(message):
+                continue
+
+            if filter.action == FilterActionEnum.SKIP:
+                skip = True
+                break
+
+            if filter.action == FilterActionEnum.DISABLE_RULE:
+                skip = True
+                rule.is_active = False
+                rule.save()
+                if rule.notify_a and rule.a_chat_id:
+                    chat_ids = [rule.a_chat_id, rule.b_chat_id]
+                elif rule.notify_a:
+                    chat_ids = [rule.a_chat_id]
+                else:
+                    chat_ids = [rule.b_chat_id]
+
+                for chat_id in chat_ids:
+                    try:
+                        client.send_message(
+                            chat_id=chat_id,
+                            text="[REFORWARD] Пересылка отключена",
+                        )
+                    except Exception as e:
+                        logger.error(f"Failed to send message to {chat_id}, reason: {e}")
+
+                break
+
+            if filter.action == FilterActionEnum.REPLACE:
+                message = filter.apply_on_message(message)
+
+        if skip:
+            continue
+
+        for rule in rules:
+            chat_id = rule.b_chat_id if rule.a_chat_id == message.chat.id else rule.a_chat_id
+
+            reply_to_message_id = None
+            if message.reply_to_message_id:
+                forwarding_a = Forwarding.objects.filter(
+                    original_message_id=message.reply_to_message_id, rule=rule
+                ).first()
+                if forwarding_a:
+                    reply_to_message_id = forwarding_a.new_message_id
+                else:
+                    forwarding_b = Forwarding.objects.filter(
+                        new_message_id=message.reply_to_message_id, rule=rule
+                    ).first()
+                    if forwarding_b:
+                        reply_to_message_id = forwarding_b.original_message_id
+
+            new_message = message.copy(chat_id=chat_id, reply_to_message_id=reply_to_message_id)
+
+            if new_message:
+                new_message: Message
+                Forwarding.objects.create(
+                    original_message_id=message.id,
+                    new_message_id=new_message.id,
+                    rule=rule,
+                )
+                logger.info(f"Forwarded message {message.id} to {chat_id}")
+
+            else:
+                logger.warning(f"Failed to forward message {message.id} to {chat_id}")
+
+
+app.run()

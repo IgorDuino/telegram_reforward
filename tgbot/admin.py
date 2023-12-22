@@ -1,11 +1,12 @@
 import random
+import asyncio
 
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
 from .forms import BroadcastMessageForm, BroadcastPhotoForm
-from .models import User
+from .models import User, Filter, Rule, Forwarding, Folder
 from .tasks.broadcast import broadcast_message, broadcast_photo
 
 
@@ -94,3 +95,45 @@ class UserAdmin(admin.ModelAdmin):
             "admin/broadcast_photo.html",
             {"items": queryset, "form": form, "title": " "},
         )
+
+
+@admin.register(Forwarding)
+class ForwardingAdmin(admin.ModelAdmin):
+    list_display = ["original_message_id", "new_message_id", "rule", "created_at"]
+    list_filter = ["rule"]
+    search_fields = ("original_message_id", "new_message_id")
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(Rule)
+class RuleAdmin(admin.ModelAdmin):
+    list_display = [
+        "id",
+        "a_chat_id",
+        "b_chat_id",
+        "direction",
+        "is_active",
+        "notify_a",
+        "notify_b",
+    ]
+    list_filter = ["direction", "folder", "is_active"]
+    search_fields = ("a_chat_id", "b_chat_id")
+
+
+@admin.register(Filter)
+class FilterAdmin(admin.ModelAdmin):
+    list_display = ["regex", "action", "replacement", "rule"]
+    list_filter = ["action", "rule"]
+    search_fields = ("regex", "replacement")
+
+
+@admin.register(Folder)
+class FolderAdmin(admin.ModelAdmin):
+    list_display = ["name", "parent"]
+    search_fields = ("name",)
+
+
+admin.site.site_header = "Telegram Userbot Admin"
+admin.site.site_title = "Telegram Userbot Admin"

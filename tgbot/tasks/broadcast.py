@@ -1,11 +1,6 @@
-import time
-import random
 import asyncio
 import telegram
-from telegram.error import BadRequest
 from celery.utils.log import get_task_logger
-
-from django.utils.timezone import now
 
 from reforward.celery import app
 from reforward.settings import TELEGRAM_TOKEN
