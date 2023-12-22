@@ -22,7 +22,7 @@ django-celery-beat
 aiohttp
 
 # Telegram
-pyrogram
+pyrofork
 TgCrypto
 python-telegram-bot==v20.5
 

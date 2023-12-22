@@ -84,15 +84,15 @@ def getid_handler(client: Client, message: Message):
 
 
 @app.on_message()
-def message_handler(client: Client, message: Message):
+async def message_handler(client: Client, message: Message):
     rules_a = Rule.objects.filter(a_chat_id=message.chat.id, is_active=True).all()
     rules_b = Rule.objects.filter(b_chat_id=message.chat.id, direction="X", is_active=True).all()
-    rules = list(rules_a) + list(rules_b)
+    rules = rules_a.union(rules_b)
 
-    for rule in rules:
+    async for rule in rules:
         skip = False
         filters = Filter.objects.filter(Q(is_general=True) | Q(rule=rule))
-        for filter in filters:
+        async for filter in filters:
             if not filter.is_match_on_message(message):
                 continue
 
@@ -102,24 +102,7 @@ def message_handler(client: Client, message: Message):
 
             if filter.action == FilterActionEnum.DISABLE_RULE:
                 skip = True
-                rule.is_active = False
-                rule.save()
-                if rule.notify_a and rule.a_chat_id:
-                    chat_ids = [rule.a_chat_id, rule.b_chat_id]
-                elif rule.notify_a:
-                    chat_ids = [rule.a_chat_id]
-                else:
-                    chat_ids = [rule.b_chat_id]
-
-                for chat_id in chat_ids:
-                    try:
-                        client.send_message(
-                            chat_id=chat_id,
-                            text="[REFORWARD] Пересылка отключена",
-                        )
-                    except Exception as e:
-                        logger.error(f"Failed to send message to {chat_id}, reason: {e}")
-
+                await rule.disable()
                 break
 
             if filter.action == FilterActionEnum.REPLACE:
@@ -133,23 +116,25 @@ def message_handler(client: Client, message: Message):
 
             reply_to_message_id = None
             if message.reply_to_message_id:
-                forwarding_a = Forwarding.objects.filter(
+                forwarding_a = await Forwarding.objects.filter(
                     original_message_id=message.reply_to_message_id, rule=rule
-                ).first()
+                ).afirst()
                 if forwarding_a:
                     reply_to_message_id = forwarding_a.new_message_id
                 else:
-                    forwarding_b = Forwarding.objects.filter(
+                    forwarding_b = await Forwarding.objects.filter(
                         new_message_id=message.reply_to_message_id, rule=rule
-                    ).first()
+                    ).afirst()
                     if forwarding_b:
                         reply_to_message_id = forwarding_b.original_message_id
 
-            new_message = message.copy(chat_id=chat_id, reply_to_message_id=reply_to_message_id)
+            new_message = await message.copy(
+                chat_id=chat_id, reply_to_message_id=reply_to_message_id
+            )
 
             if new_message:
                 new_message: Message
-                Forwarding.objects.create(
+                await Forwarding.objects.acreate(
                     original_message_id=message.id,
                     new_message_id=new_message.id,
                     rule=rule,

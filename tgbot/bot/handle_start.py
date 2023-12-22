@@ -1,7 +1,5 @@
-import asyncio
 import logging
 
-import telegram
 from telegram.ext import ContextTypes
 
 from tgbot.bot import message_texts as m
