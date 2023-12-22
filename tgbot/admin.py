@@ -121,6 +121,18 @@ class RuleAdmin(admin.ModelAdmin):
     list_filter = ["direction", "folder", "is_active"]
     search_fields = ("a_chat_id", "b_chat_id")
 
+    actions = ["enable", "disable"]
+
+    async def enable(self, request, queryset):
+        for rule in queryset:
+            await rule.enable()
+        self.message_user(request, f"{len(queryset)} rules enabled")
+
+    async def disable(self, request, queryset):
+        for rule in queryset:
+            await rule.disable()
+        self.message_user(request, f"{len(queryset)} rules disabled")
+
 
 @admin.register(Filter)
 class FilterAdmin(admin.ModelAdmin):

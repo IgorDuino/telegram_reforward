@@ -8,7 +8,8 @@ import telegram
 from django.db import models
 
 from tgbot.bot import utils
-from reforward.settings import TELEGRAM_TOKEN
+from reforward.settings import TELEGRAM_TOKEN, TELEGRAM_USERBOT_SESSION_STRING
+from pyrogram import Client
 
 
 logger = logging.getLogger(__name__)
@@ -160,6 +161,41 @@ class Rule(models.Model):
         if self.direction == "O":
             return f"{self.a_chat_id} -> {self.b_chat_id}"
         return f"{self.a_chat_id} <-> {self.b_chat_id}"
+
+    async def change_active(self, is_active):
+        if self.is_active == is_active:
+            return
+        self.is_active = is_active
+        await self.asave()
+        chat_ids = []
+        if self.notify_a and self.a_chat_id:
+            chat_ids = [self.a_chat_id, self.b_chat_id]
+        elif self.notify_a:
+            chat_ids = [self.a_chat_id]
+        elif self.notify_b:
+            chat_ids = [self.b_chat_id]
+
+        if chat_ids != []:
+            async with Client(
+                "", 0, "", session_string=TELEGRAM_USERBOT_SESSION_STRING, in_memory=True
+            ) as client:
+                for chat_id in chat_ids:
+                    try:
+                        text = (
+                            f"[REFORWARD] Пересылка {'отключена' if not is_active else 'включена'}"
+                        )
+                        await client.send_message(
+                            chat_id=chat_id,
+                            text=text,
+                        )
+                    except Exception as e:
+                        logger.error(f"Failed to send message to {chat_id}, reason: {e}")
+
+    async def enable(self):
+        await self.change_active(True)
+
+    async def disable(self):
+        await self.change_active(False)
 
 
 class FilterActionEnum(models.TextChoices):
