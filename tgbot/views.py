@@ -8,7 +8,9 @@ from tgbot.bot.tasks import process_telegram_event
 
 class TelegramBotWebhookView(View):
     def post(self, request, *args, **kwargs):
+        print(request.body)
         update_json = json.loads(request.body)
+    
         process_telegram_event.delay(update_json)
 
         return JsonResponse({"ok": "POST request processed"})

@@ -62,7 +62,7 @@ def deleted_messages_handler(client: Client, messages: list[Message]):
 
 
 @app.on_message(filters=filters.command("getid"))
-def getid_handler(client: Client, message: Message):
+async def getid_handler(client: Client, message: Message):
     requested_chat_id = message.chat.id
 
     if message.chat.username:
@@ -74,13 +74,15 @@ def getid_handler(client: Client, message: Message):
     else:
         name = ""
 
-    client.delete_messages(chat_id=message.chat.id, message_ids=message.id)
-    client.send_message(
-        chat_id=client.get_me().id,
+    await client.delete_messages(chat_id=message.chat.id, message_ids=message.id)
+
+    my_id = (await client.get_me()).id
+    await client.send_message(
+        chat_id=my_id,
         text=f"Запрошенный ID {name}: <code>{requested_chat_id}</code>",
         parse_mode=ParseMode.HTML,
     )
-    client.mark_chat_unread(chat_id=client.get_me().id)
+    await client.mark_chat_unread(chat_id=my_id)
 
 
 @app.on_message()
@@ -144,5 +146,6 @@ async def message_handler(client: Client, message: Message):
             else:
                 logger.warning(f"Failed to forward message {message.id} to {chat_id}")
 
-
-app.run()
+if __name__ == "__main__":
+    logger.info("Starting userbot")
+    app.run()

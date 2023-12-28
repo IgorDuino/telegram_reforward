@@ -4,7 +4,6 @@ from decouple import config
 
 TELEGRAM_USERBOT_SESSION_STRING = config("TELEGRAM_USERBOT_SESSION_STRING", default=None)
 if TELEGRAM_USERBOT_SESSION_STRING:
-    # check if session string is valid
     try:
         pyrogram.Client(
             "",
