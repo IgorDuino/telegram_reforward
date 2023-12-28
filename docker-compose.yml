@@ -10,8 +10,6 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-    ports:
-      - '5433:5432'
 
   redis:
     image: redis
@@ -36,6 +34,8 @@ services:
       dockerfile: Dockerfile
     container_name: reforward_userbot
     command: python run_userbot.py
+    volumes:
+      - ./sessions:/code/sessions
     env_file:
       - ./.env
     depends_on:

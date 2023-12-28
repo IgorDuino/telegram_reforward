@@ -3,25 +3,26 @@ import django
 django.setup()
 
 
-from reforward.settings import TELEGRAM_USERBOT_SESSION_STRING
+from reforward import settings
 from django.db.models import Q
 
 from pyrogram import Client, filters
 from pyrogram.types import Message
+import pyrogram.errors
 from pyrogram.enums import ParseMode
 import re
 import logging
 from tgbot.models import User, Filter, FilterActionEnum, Rule, Forwarding
-
+import functools
 
 logger = logging.getLogger(__name__)
 
 app = Client(
-    "",
-    api_id=0,
-    api_hash="",
-    session_string=TELEGRAM_USERBOT_SESSION_STRING,
-    in_memory=True,
+    "userbot",
+    workdir="sessions",
+    phone_number=settings.PHONE_NUMBER,
+    api_id=settings.TELEGRAM_API_ID,
+    api_hash=settings.TELEGRAM_API_HASH,
 )
 
 
@@ -145,6 +146,21 @@ async def message_handler(client: Client, message: Message):
 
             else:
                 logger.warning(f"Failed to forward message {message.id} to {chat_id}")
+
+
+from pyrogram.raw.types import UpdateEditMessage
+
+
+@app.on_raw_update()
+async def handler(client, update: UpdateEditMessage, users, chats):
+    try:
+        reactions = update.message.reactions
+    except Exception as e:
+        return
+
+    for reaction in reactions:
+        print(reaction)
+
 
 if __name__ == "__main__":
     logger.info("Starting userbot")
