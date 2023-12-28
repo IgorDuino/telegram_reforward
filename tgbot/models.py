@@ -8,7 +8,7 @@ import telegram
 from django.db import models
 
 from tgbot.bot import utils
-from reforward.settings import TELEGRAM_TOKEN, TELEGRAM_USERBOT_SESSION_STRING
+from reforward.settings import TELEGRAM_TOKEN
 from pyrogram import Client
 
 
@@ -175,21 +175,21 @@ class Rule(models.Model):
         elif self.notify_b:
             chat_ids = [self.b_chat_id]
 
-        if chat_ids != []:
-            async with Client(
-                "", 0, "", session_string=TELEGRAM_USERBOT_SESSION_STRING, in_memory=True
-            ) as client:
-                for chat_id in chat_ids:
-                    try:
-                        text = (
-                            f"[REFORWARD] Пересылка {'отключена' if not is_active else 'включена'}"
-                        )
-                        await client.send_message(
-                            chat_id=chat_id,
-                            text=text,
-                        )
-                    except Exception as e:
-                        logger.error(f"Failed to send message to {chat_id}, reason: {e}")
+        # if chat_ids != []:
+        #     async with Client(
+        #         "", 0, "", session_string=TELEGRAM_USERBOT_SESSION_STRING, in_memory=True
+        #     ) as client:
+        #         for chat_id in chat_ids:
+        #             try:
+        #                 text = (
+        #                     f"[REFORWARD] Пересылка {'отключена' if not is_active else 'включена'}"
+        #                 )
+        #                 await client.send_message(
+        #                     chat_id=chat_id,
+        #                     text=text,
+        #                 )
+        #             except Exception as e:
+        #                 logger.error(f"Failed to send message to {chat_id}, reason: {e}")
 
     async def enable(self):
         await self.change_active(True)
