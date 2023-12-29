@@ -4,7 +4,6 @@ services:
   db:
     image: postgres
     container_name: reforward_postgres
-    restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
