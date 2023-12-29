@@ -1,8 +1,10 @@
 import os
 
-import dj_database_url
 from decouple import config
+from dotenv import load_dotenv
 
+
+load_dotenv()
 
 SECRET_KEY = config("DJANGO_SECRET_KEY")
 
@@ -60,7 +62,16 @@ WSGI_APPLICATION = "reforward.wsgi.application"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-DATABASES = {"default": dj_database_url.config(conn_max_age=600)}
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "NAME": "postgres",
+        "HOST": "localhost",
+        "PORT": "5432",
+        "USER": "postgres",
+        "PASSWORD": "postgres",
+    }
+}
 
 REDIS_URL = config("REDIS_URL")
 
