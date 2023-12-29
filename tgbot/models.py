@@ -144,15 +144,22 @@ class Folder(models.Model):
 class Rule(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=256, null=True, blank=True)
+
     a_chat_id = models.BigIntegerField()
     b_chat_id = models.BigIntegerField()
     direction = models.CharField(
         max_length=1, choices=[("O", "One-way"), ("X", "Two-way")], default=("O", "One-way")
     )
+
     folder = models.ForeignKey(Folder, on_delete=models.SET_NULL, null=True, blank=True)
     is_active = models.BooleanField(default=True)
+
     notify_a = models.BooleanField(default=False)
     notify_b = models.BooleanField(default=False)
+
+    top_signature = models.CharField(max_length=1000, null=True, blank=True)
+    bottom_signature = models.CharField(max_length=1000, null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

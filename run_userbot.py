@@ -8,14 +8,13 @@ from django.db.models import Q
 
 from pyrogram import Client, filters
 from pyrogram.types import Message
-import pyrogram.errors
 from pyrogram.enums import ParseMode
-import re
 import logging
 from tgbot.models import User, Filter, FilterActionEnum, Rule, Forwarding
-import functools
+
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 app = Client(
     "userbot",
@@ -114,38 +113,40 @@ async def message_handler(client: Client, message: Message):
         if skip:
             continue
 
-        for rule in rules:
-            chat_id = rule.b_chat_id if rule.a_chat_id == message.chat.id else rule.a_chat_id
+        if rule.top_signature:
+            message.text = f"{rule.top_signature}\n{message.text}"
+        if rule.bottom_signature:
+            message.text = f"{message.text}\n{rule.bottom_signature}"
 
-            reply_to_message_id = None
-            if message.reply_to_message_id:
-                forwarding_a = await Forwarding.objects.filter(
-                    original_message_id=message.reply_to_message_id, rule=rule
-                ).afirst()
-                if forwarding_a:
-                    reply_to_message_id = forwarding_a.new_message_id
-                else:
-                    forwarding_b = await Forwarding.objects.filter(
-                        new_message_id=message.reply_to_message_id, rule=rule
-                    ).afirst()
-                    if forwarding_b:
-                        reply_to_message_id = forwarding_b.original_message_id
+        chat_id = rule.b_chat_id if rule.a_chat_id == message.chat.id else rule.a_chat_id
 
-            new_message = await message.copy(
-                chat_id=chat_id, reply_to_message_id=reply_to_message_id
-            )
-
-            if new_message:
-                new_message: Message
-                await Forwarding.objects.acreate(
-                    original_message_id=message.id,
-                    new_message_id=new_message.id,
-                    rule=rule,
-                )
-                logger.info(f"Forwarded message {message.id} to {chat_id}")
-
+        reply_to_message_id = None
+        if message.reply_to_message_id:
+            forwarding_a = await Forwarding.objects.filter(
+                original_message_id=message.reply_to_message_id, rule=rule
+            ).afirst()
+            if forwarding_a:
+                reply_to_message_id = forwarding_a.new_message_id
             else:
-                logger.warning(f"Failed to forward message {message.id} to {chat_id}")
+                forwarding_b = await Forwarding.objects.filter(
+                    new_message_id=message.reply_to_message_id, rule=rule
+                ).afirst()
+                if forwarding_b:
+                    reply_to_message_id = forwarding_b.original_message_id
+
+        new_message = await message.copy(chat_id=chat_id, reply_to_message_id=reply_to_message_id)
+
+        if new_message:
+            new_message: Message
+            await Forwarding.objects.acreate(
+                original_message_id=message.id,
+                new_message_id=new_message.id,
+                rule=rule,
+            )
+            logger.info(f"Forwarded message {message.id} to {chat_id}")
+
+        else:
+            logger.warning(f"Failed to forward message {message.id} to {chat_id}")
 
 
 from pyrogram.raw.types import UpdateEditMessage
@@ -158,7 +159,7 @@ def reaction_handler(client: Client, update: UpdateEditMessage, users, chats):
         message: Message = update.message
     except Exception as e:
         return
-    
+
     for forwarding in Forwarding.objects.filter(original_message_id=message.id).all():
         try:
             for reaction in recent_reactions:
@@ -174,8 +175,6 @@ def reaction_handler(client: Client, update: UpdateEditMessage, users, chats):
 
     for forwarding in Forwarding.objects.filter(new_message_id=message.id).all():
         try:
-            if recent_reactions == []:
-                client.
             for reaction in recent_reactions:
                 client.send_reaction(
                     chat_id=forwarding.rule.a_chat_id
