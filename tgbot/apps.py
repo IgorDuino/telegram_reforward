@@ -3,19 +3,22 @@ from reforward.settings import WEBHOOK_URL
 import asyncio
 import logging
 
-logger = logging.getLogger(__name__)
+
+logger = logging.getLogger("bot")
 
 logger.info("Loading tgbot/apps.py")
+
+
 async def check_and_set_webhook():
     from tgbot.bot.bot import bot
 
     webhook = await bot.get_webhook_info()
 
     if webhook.url != WEBHOOK_URL:
-        logger.info("Setting webhook")
+        print("Setting webhook")
         await bot.set_webhook(WEBHOOK_URL)
     else:
-        logger.info("Webhook already set")
+        print("Webhook already set")
 
 
 class TgbotConfig(AppConfig):

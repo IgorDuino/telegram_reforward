@@ -24,6 +24,8 @@ class User(models.Model):
 
     deep_link = models.CharField(max_length=64, null=True, blank=True)
 
+    is_forwarding_enabled = models.BooleanField(default=True)
+
     is_blocked_bot = models.BooleanField(default=False)
     is_banned = models.BooleanField(default=False)
 
@@ -46,7 +48,6 @@ class User(models.Model):
 
     @classmethod
     async def get_user_and_created(cls, update, context):
-        """python-telegram-bot's Update, Context --> User instance"""
         data = await utils.extract_user_data_from_update(update)
         u, created = await cls.objects.aupdate_or_create(user_id=data["user_id"], defaults=data)
 

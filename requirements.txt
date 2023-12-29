@@ -1,6 +1,7 @@
 pytz
 requests
 gunicorn
+python-dotenv
 python-decouple
 
 # django 4.2 dev version

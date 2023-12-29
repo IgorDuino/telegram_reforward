@@ -1,3 +1,7 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+
 import django
 
 django.setup()
@@ -6,7 +10,7 @@ django.setup()
 from reforward import settings
 from django.db.models import Q
 
-from pyrogram import Client, filters
+from pyrogram import Client, filters, idle
 from pyrogram.types import Message
 from pyrogram.enums import ParseMode
 import logging
@@ -24,9 +28,18 @@ app = Client(
     api_hash=settings.TELEGRAM_API_HASH,
 )
 
+app.start()
+
+my_id = app.get_me().id
+
+print(f"Userbot started, my ID: {my_id}")
+
 
 @app.on_deleted_messages()
 def deleted_messages_handler(client: Client, messages: list[Message]):
+    if not User.objects.get(user_id=my_id).is_forwarding_enabled:
+        return
+
     for message in messages:
         for forwarding in Forwarding.objects.filter(original_message_id=message.id).all():
             try:
@@ -76,7 +89,6 @@ async def getid_handler(client: Client, message: Message):
 
     await client.delete_messages(chat_id=message.chat.id, message_ids=message.id)
 
-    my_id = (await client.get_me()).id
     await client.send_message(
         chat_id=my_id,
         text=f"Запрошенный ID {name}: <code>{requested_chat_id}</code>",
@@ -87,6 +99,9 @@ async def getid_handler(client: Client, message: Message):
 
 @app.on_message()
 async def message_handler(client: Client, message: Message):
+    if not (await User.objects.aget(user_id=my_id)).is_forwarding_enabled:
+        return
+
     rules_a = Rule.objects.filter(a_chat_id=message.chat.id, is_active=True).all()
     rules_b = Rule.objects.filter(b_chat_id=message.chat.id, direction="X", is_active=True).all()
     rules = rules_a.union(rules_b)
@@ -154,6 +169,9 @@ from pyrogram.raw.types import UpdateEditMessage
 
 @app.on_raw_update()
 def reaction_handler(client: Client, update: UpdateEditMessage, users, chats):
+    if not User.objects.get(user_id=my_id).is_forwarding_enabled:
+        return
+
     try:
         recent_reactions = update.message.reactions.recent_reactions
         message: Message = update.message
@@ -187,6 +205,5 @@ def reaction_handler(client: Client, update: UpdateEditMessage, users, chats):
             pass
 
 
-if __name__ == "__main__":
-    logger.info("Starting userbot")
-    app.run()
+idle()
+app.stop()
