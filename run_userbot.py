@@ -161,11 +161,12 @@ def reaction_handler(client: Client, update: UpdateEditMessage, users, chats):
         return
 
     for forwarding in Forwarding.objects.filter(original_message_id=message.id).all():
+        print(1, forwarding)
         try:
             for reaction in recent_reactions:
                 client.send_reaction(
                     chat_id=forwarding.rule.a_chat_id
-                    if forwarding.rule.b_chat_id == message.from_id.user_id
+                    if forwarding.rule.direction == "O"
                     else forwarding.rule.b_chat_id,
                     message_id=forwarding.new_message_id,
                     emoji=reaction.reaction.emoticon,
@@ -174,11 +175,12 @@ def reaction_handler(client: Client, update: UpdateEditMessage, users, chats):
             pass
 
     for forwarding in Forwarding.objects.filter(new_message_id=message.id).all():
+        print(2, forwarding)
         try:
             for reaction in recent_reactions:
                 client.send_reaction(
                     chat_id=forwarding.rule.a_chat_id
-                    if forwarding.rule.b_chat_id == message.from_id.user_id
+                    if forwarding.rule.direction == "O"
                     else forwarding.rule.b_chat_id,
                     message_id=forwarding.original_message_id,
                     emoji=reaction.reaction.emoticon,
