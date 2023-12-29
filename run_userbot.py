@@ -152,14 +152,40 @@ from pyrogram.raw.types import UpdateEditMessage
 
 
 @app.on_raw_update()
-async def handler(client, update: UpdateEditMessage, users, chats):
+def reaction_handler(client: Client, update: UpdateEditMessage, users, chats):
     try:
-        reactions = update.message.reactions
+        recent_reactions = update.message.reactions.recent_reactions
+        message: Message = update.message
     except Exception as e:
         return
+    
+    for forwarding in Forwarding.objects.filter(original_message_id=message.id).all():
+        try:
+            for reaction in recent_reactions:
+                client.send_reaction(
+                    chat_id=forwarding.rule.a_chat_id
+                    if forwarding.rule.b_chat_id == message.from_id.user_id
+                    else forwarding.rule.b_chat_id,
+                    message_id=forwarding.new_message_id,
+                    emoji=reaction.reaction.emoticon,
+                )
+        except Exception as e:
+            pass
 
-    for reaction in reactions:
-        print(reaction)
+    for forwarding in Forwarding.objects.filter(new_message_id=message.id).all():
+        try:
+            if recent_reactions == []:
+                client.
+            for reaction in recent_reactions:
+                client.send_reaction(
+                    chat_id=forwarding.rule.a_chat_id
+                    if forwarding.rule.b_chat_id == message.from_id.user_id
+                    else forwarding.rule.b_chat_id,
+                    message_id=forwarding.original_message_id,
+                    emoji=reaction.reaction.emoticon,
+                )
+        except Exception as e:
+            pass
 
 
 if __name__ == "__main__":
