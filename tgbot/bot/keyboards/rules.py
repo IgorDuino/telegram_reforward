@@ -13,9 +13,9 @@ from tgbot.models import Folder, Rule
 def rules_keyboard(folders: List[Folder], rules: List[Rule], folder=None) -> InlineKeyboardMarkup:
     buttons = []
 
-    for folder in folders:
+    for folder_ in folders:
         buttons.append(
-            [InlineKeyboardButton(f"📂 {folder.name}", callback_data=f"folder:{folder.id}")]
+            [InlineKeyboardButton(f"📂 {folder_.name}", callback_data=f"folder:{folder_.id}")]
         )
 
     for rule in rules:
@@ -32,7 +32,7 @@ def rules_keyboard(folders: List[Folder], rules: List[Rule], folder=None) -> Inl
             [
                 [
                     InlineKeyboardButton(
-                        "🔙 Назад",
+                        "⬆️ Вверх", 
                         callback_data=f"folder:{folder.parent.id}" if folder.parent else "rules",
                     )
                 ],
@@ -45,6 +45,13 @@ def rules_keyboard(folders: List[Folder], rules: List[Rule], folder=None) -> Inl
             ]
         )
 
+    buttons.append(
+        [
+            InlineKeyboardButton(
+                "➕ Добавить папку", callback_data="add:folder",
+            )
+        ]
+
     return InlineKeyboardMarkup(buttons)
 
 
@@ -54,8 +61,8 @@ def rule_keyboard(rule: Rule) -> InlineKeyboardMarkup:
             InlineKeyboardButton(
                 text="🟢 Включить" if not rule.is_active else "🔴 Выключить",
                 callback_data=f"toggle:rule:1:{rule.id}"
-                if rule.is_active
-                else f"toggle:rule:1:{rule.id}",
+                if not rule.is_active
+                else f"toggle:rule:0:{rule.id}",
             )
         ],
         [InlineKeyboardButton("🗑 Удалить", callback_data=f"delete:rule:{rule.id}")],
