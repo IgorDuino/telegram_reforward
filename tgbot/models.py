@@ -197,8 +197,7 @@ class Rule(models.Model):
         #                     text=text,
         #                 )
         #             except Exception as e:
-        #                 logger.error(f"Failed to send message to {chat_id}, reason: {e}")
-
+            
     async def enable(self):
         await self.change_active(True)
 

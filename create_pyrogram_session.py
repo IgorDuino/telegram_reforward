@@ -1,10 +1,11 @@
 import pyrogram
-from decouple import config
+from decouple import Config, RepositoryEnv
 
+env = Config(RepositoryEnv(".env"))
 
-TELEGRAM_API_ID = config("TELEGRAM_API_ID")
-TELEGRAM_API_HASH = config("TELEGRAM_API_HASH")
-PHONE_NUMBER = config("PHONE_NUMBER")
+TELEGRAM_API_ID = env.get("TELEGRAM_API_ID")
+TELEGRAM_API_HASH = env.get("TELEGRAM_API_HASH")
+PHONE_NUMBER = env.get("PHONE_NUMBER")
 
 with pyrogram.Client(
     "userbot",
