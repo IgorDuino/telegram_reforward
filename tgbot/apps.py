@@ -25,9 +25,7 @@ class TgbotConfig(AppConfig):
     name = "tgbot"
 
     def ready(self):
-        if "makemigrations" in sys.argv or "migrate" in sys.argv:
-            return True
+        if "reforward.asgi:application" in sys.argv:
+            from tgbot.bot.bot import bot
 
-        from tgbot.bot.bot import bot
-
-        asyncio.get_event_loop().run_until_complete(check_and_set_webhook())
+            asyncio.get_event_loop().run_until_complete(check_and_set_webhook())
