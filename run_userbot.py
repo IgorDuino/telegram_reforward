@@ -122,7 +122,7 @@ async def message_handler(client: Client, message: Message):
 
     async for rule in rules:
         skip = False
-        filters = Filter.objects.filter(Q(is_general=True) | Q(rule=rule))
+        filters = Filter.objects.filter(Q(rule=None) | Q(rule=rule))
         async for filter in filters:
             if not filter.is_match_on_message(message):
                 continue

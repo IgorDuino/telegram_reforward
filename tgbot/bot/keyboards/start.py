@@ -5,11 +5,11 @@ def start_keyboard(enabled: bool) -> InlineKeyboardMarkup:
     buttons = [
         InlineKeyboardButton("Правила", callback_data="rules"),
         InlineKeyboardButton("Новое правило", callback_data="add_rule"),
-        InlineKeyboardButton("Общие фильры", callback_data="general_filters"),
+        InlineKeyboardButton("Общие фильры", callback_data="filters:general"),
         InlineKeyboardButton("Новый общий фильтр", callback_data="add_general_filter"),
         InlineKeyboardButton(
             "Отключить пересылку" if enabled else "Включить пересылку",
-            callback_data="disable_forwarding" if enabled else "enable_forwarding",
+            callback_data="toggle:forwarding:0" if enabled else "toggle:forwarding:1",
         ),
     ]
 
