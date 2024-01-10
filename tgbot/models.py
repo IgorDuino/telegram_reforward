@@ -197,7 +197,7 @@ class Rule(models.Model):
         #                     text=text,
         #                 )
         #             except Exception as e:
-            
+
     async def enable(self):
         await self.change_active(True)
 
@@ -213,7 +213,7 @@ class FilterActionEnum(models.TextChoices):
 
 class Filter(models.Model):
     id = models.AutoField(primary_key=True)
-    is_general = models.BooleanField(default=False)  # works for all rules
+    name = models.CharField(max_length=256, null=True, blank=True)
     rule = models.ForeignKey(Rule, on_delete=models.CASCADE, null=True, blank=True)
     regex = models.CharField(max_length=512)
     action = models.CharField(

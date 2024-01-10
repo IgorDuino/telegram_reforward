@@ -17,6 +17,7 @@ from reforward.settings import TELEGRAM_TOKEN
 
 from tgbot.bot.handlers.start import start_handler
 from tgbot.bot.handlers.rules import rules_handler, rule_handler
+from tgbot.bot.handlers.filters import filters_handler, filter_handler
 from tgbot.bot.handlers.general import toggle_handler, delete_handler
 from tgbot.bot.handlers.add_rule import (
     add_rule_handler,
@@ -40,10 +41,13 @@ filterwarnings(action="ignore", message=r".*CallbackQueryHandler", category=PTBU
 
 def setup_application(app):
     app.add_handler(CommandHandler("start", start_handler))
+    app.add_handler(CallbackQueryHandler(start_handler, pattern="start"))
 
     app.add_handler(CallbackQueryHandler(rules_handler, pattern="rules"))
     app.add_handler(CallbackQueryHandler(rules_handler, pattern="folder:"))
     app.add_handler(CallbackQueryHandler(rule_handler, pattern="rule:"))
+    app.add_handler(CallbackQueryHandler(filters_handler, pattern="filters:"))
+    app.add_handler(CallbackQueryHandler(filter_handler, pattern="filter:"))
     app.add_handler(CallbackQueryHandler(toggle_handler, pattern="toggle:"))
     app.add_handler(CallbackQueryHandler(delete_handler, pattern="delete:"))
 
@@ -88,18 +92,17 @@ def setup_application(app):
 defaults = Defaults(parse_mode=ParseMode.MARKDOWN_V2, tzinfo=pytz.timezone("Europe/Moscow"))
 
 
-def run_polling():
-    app = Application.builder().token(TELEGRAM_TOKEN).defaults(defaults).build()
-    setup_application(app)
-    print(f"Polling of bot started, PTB version: {telegram.__version__}")
-    app.run_polling()
-
-
-def main():
-    return run_polling()
-
-
 application = Application.builder().token(TELEGRAM_TOKEN).defaults(defaults).build()
 setup_application(application)
 loop = asyncio.get_event_loop()
 bot = application.bot
+
+
+def run_polling():
+    setup_application(application)
+    print(f"Polling of bot started, PTB version: {telegram.__version__}")
+    application.run_polling()
+
+
+def main():
+    return run_polling()

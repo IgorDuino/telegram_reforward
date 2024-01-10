@@ -20,17 +20,24 @@ logger.setLevel(logging.DEBUG)
 async def toggle_handler(update: Update, context: CallbackContext):
     u = await User.get_user(update, context)
 
-    id = int(update.callback_query.data.split(":")[3])
+    a = update.callback_query.data.split(":")[1]
 
-    if update.callback_query.data.split(":")[1] == "rule":
+    if a == "rule":
+        id = int(update.callback_query.data.split(":")[3])
         rule = await Rule.objects.aget(id=id)
         rule.is_active = bool(int(update.callback_query.data.split(":")[2]))
         await rule.asave()
 
-    if update.callback_query.data.split(":")[1] == "folder":
+    elif a == "folder":
+        id = int(update.callback_query.data.split(":")[3])
+
         folder = await Folder.objects.aget(id=id)
         folder.is_active = bool(int(update.callback_query.data.split(":")[2]))
         await folder.asave()
+
+    elif a == "forwarding":
+        u.is_forwarding_enabled = bool(int(update.callback_query.data.split(":")[2]))
+        await u.asave()
 
     await update.callback_query.edit_message_text(
         text=m.DONE,
@@ -49,7 +56,7 @@ async def delete_handler(update: Update, context: CallbackContext):
         rule = await Rule.objects.aget(id=id)
         await rule.adelete()
 
-    if update.callback_query.data.split(":")[1] == "folder":
+    elif update.callback_query.data.split(":")[1] == "folder":
         folder = await Folder.objects.aget(id=id)
         await folder.adelete()
 

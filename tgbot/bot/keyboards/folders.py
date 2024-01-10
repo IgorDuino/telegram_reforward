@@ -16,4 +16,4 @@ def chose_folder_keyboard(folders: List[Folder]) -> InlineKeyboardMarkup:
 
     buttons.append([InlineKeyboardButton("Без папки", callback_data="folder:nofolder")])
 
-    return InlineKeyboardMarkup.from_column(buttons)
+    return InlineKeyboardMarkup(buttons)

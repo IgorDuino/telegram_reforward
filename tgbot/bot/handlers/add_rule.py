@@ -32,7 +32,10 @@ async def add_rule_handler(update: Update, context: CallbackContext):
 
 
 async def add_rule_handler_a_chat_id(update: Update, context: CallbackContext):
-    context.user_data["a_chat_id"] = update.message.text
+    if update.message.forward_from:
+        context.user_data["a_chat_id"] = update.message.forward_from.id
+    else:
+        context.user_data["a_chat_id"] = update.message.text
 
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -44,7 +47,10 @@ async def add_rule_handler_a_chat_id(update: Update, context: CallbackContext):
 
 
 async def add_rule_handler_b_chat_id(update: Update, context: CallbackContext):
-    context.user_data["b_chat_id"] = update.message.text
+    if update.message.forward_from:
+        context.user_data["b_chat_id"] = update.message.forward_from.id
+    else:
+        context.user_data["b_chat_id"] = update.message.text
 
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -79,8 +85,7 @@ async def add_rule_handler_folder_or_not(update: Update, context: CallbackContex
         async for folder in Folder.objects.all():
             folders.append(folder)
 
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
+        await update.callback_query.edit_message_text(
             text="Выберите папку",
             reply_markup=chose_folder_keyboard(folders),
         )
@@ -196,4 +201,4 @@ async def add_rule_handler_name(update: Update, context: CallbackContext):
         text=f"Правило {rule.name} успешно добавлено",
     )
 
-    return start_handler(update, context)
+    return await start_handler(update, context)

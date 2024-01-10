@@ -13,3 +13,12 @@ RULE = """
 """
 DONE = "Выполнено"
 DELETED = "Удалено"
+
+RULE_FILTERS = "Фильтры правила `{rule}`:"
+GENERAL_FILTERS = "Общие фильтры:"
+FILTER = """
+Фильтр `{filter_name}`
+Trigger: `{trigger}`
+Действие: `{action}`
+Замена на: `{replacement}`
+"""

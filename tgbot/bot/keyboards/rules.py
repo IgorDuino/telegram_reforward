@@ -32,7 +32,7 @@ def rules_keyboard(folders: List[Folder], rules: List[Rule], folder=None) -> Inl
             [
                 [
                     InlineKeyboardButton(
-                        "⬆️ Вверх", 
+                        "⬆️ Вверх",
                         callback_data=f"folder:{folder.parent.id}" if folder.parent else "rules",
                     )
                 ],
@@ -48,9 +48,11 @@ def rules_keyboard(folders: List[Folder], rules: List[Rule], folder=None) -> Inl
     buttons.append(
         [
             InlineKeyboardButton(
-                "➕ Добавить папку", callback_data="add:folder",
+                "🔙 Назад",
+                callback_data="start",
             )
         ]
+    )
 
     return InlineKeyboardMarkup(buttons)
 
