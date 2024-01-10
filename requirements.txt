@@ -3,29 +3,19 @@ requests
 gunicorn
 python-dotenv
 python-decouple
-
-# django 4.2 dev version
-django==4.2.3
-
+django
 djangorestframework
 django-timezone-field 
 django-cors-headers
 uvicorn
 httptools
-
 psycopg2-binary
 whitenoise
-dj-database-url
-
 celery
 redis
 django-celery-beat
 aiohttp
-
-# Telegram
 pyrofork
 TgCrypto
-python-telegram-bot==v20.5
-
-# caching
+python-telegram-bot
 django-redis

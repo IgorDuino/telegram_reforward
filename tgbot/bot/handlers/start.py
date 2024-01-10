@@ -3,6 +3,8 @@ import logging
 from telegram.ext import CallbackContext, ConversationHandler
 from telegram import Update
 
+from reforward import settings
+
 from tgbot.bot import message_texts as m
 from tgbot.models import User
 
@@ -14,6 +16,10 @@ logger.setLevel(logging.DEBUG)
 
 
 async def start_handler(update: Update, context: CallbackContext):
+    if update.effective_user.id not in (settings.TELEGRAM_ID, settings.TELEGRAM_ADMIN_ID):
+        await update.message.reply_text(m.NOT_AUTHORIZED)
+        return ConversationHandler.END
+
     u, _ = await User.get_user_and_created(update, context)
 
     context.user_data.clear()

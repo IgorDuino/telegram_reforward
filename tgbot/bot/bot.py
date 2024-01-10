@@ -1,7 +1,9 @@
+import pytz
 import asyncio
 
 import telegram
 from telegram.ext import (
+    Defaults,
     Application,
     MessageHandler,
     CommandHandler,
@@ -9,12 +11,14 @@ from telegram.ext import (
     CallbackQueryHandler,
 )
 from telegram.ext import filters
+from telegram.constants import ParseMode
 
 from reforward.settings import TELEGRAM_TOKEN
 
 from tgbot.bot.handlers.start import start_handler
-from tgbot.bot.handlers.rules import (
-    rules_handler,
+from tgbot.bot.handlers.rules import rules_handler, rule_handler
+from tgbot.bot.handlers.general import toggle_handler, delete_handler
+from tgbot.bot.handlers.add_rule import (
     add_rule_handler,
     add_rule_handler_a_chat_id,
     add_rule_handler_b_chat_id,
@@ -38,6 +42,10 @@ def setup_application(app):
     app.add_handler(CommandHandler("start", start_handler))
 
     app.add_handler(CallbackQueryHandler(rules_handler, pattern="rules"))
+    app.add_handler(CallbackQueryHandler(rules_handler, pattern="folder:"))
+    app.add_handler(CallbackQueryHandler(rule_handler, pattern="rule:"))
+    app.add_handler(CallbackQueryHandler(toggle_handler, pattern="toggle:"))
+    app.add_handler(CallbackQueryHandler(delete_handler, pattern="delete:"))
 
     add_rule_conv_handler = ConversationHandler(
         per_user=True,
@@ -77,8 +85,11 @@ def setup_application(app):
     app.add_handler(add_rule_conv_handler)
 
 
+defaults = Defaults(parse_mode=ParseMode.MARKDOWN_V2, tzinfo=pytz.timezone("Europe/Moscow"))
+
+
 def run_polling():
-    app = Application.builder().token(TELEGRAM_TOKEN).build()
+    app = Application.builder().token(TELEGRAM_TOKEN).defaults(defaults).build()
     setup_application(app)
     print(f"Polling of bot started, PTB version: {telegram.__version__}")
     app.run_polling()
@@ -88,15 +99,7 @@ def main():
     return run_polling()
 
 
-application = (
-    Application.builder()
-    .token(TELEGRAM_TOKEN)
-    .read_timeout(30)
-    .write_timeout(30)
-    .pool_timeout(30)
-    .connect_timeout(30)
-    .build()
-)
+application = Application.builder().token(TELEGRAM_TOKEN).defaults(defaults).build()
 setup_application(application)
 loop = asyncio.get_event_loop()
 bot = application.bot

@@ -65,11 +65,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": "postgres",
-        "HOST": "localhost",
-        "PORT": "5432",
-        "USER": "postgres",
-        "PASSWORD": "postgres",
+        "NAME": config("DB_NAME"),
+        "HOST": config("DB_HOST"),
+        "PORT": config("DB_PORT"),
+        "USER": config("DB_USER"),
+        "PASSWORD": config("DB_PASS"),
     }
 }
 
@@ -79,7 +79,7 @@ CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": REDIS_URL,
-        "TIMEOUT": 60 * 3,  # 3 minutes as default timeout
+        "TIMEOUT": 60 * 3,
         "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
         "KEY_PREFIX": "django_reforward_cache",
     }
@@ -128,6 +128,8 @@ TELEGRAM_TOKEN = config("TELEGRAM_TOKEN")
 TELEGRAM_API_ID = config("TELEGRAM_API_ID")
 TELEGRAM_API_HASH = config("TELEGRAM_API_HASH")
 PHONE_NUMBER = config("PHONE_NUMBER")
+TELEGRAM_ID = config("TELEGRAM_ID", cast=int)
+TELEGRAM_ADMIN_ID = config("TELEGRAM_ADMIN_ID", default=TELEGRAM_ID, cast=int)
 
 MAIN_URL = config("MAIN_URL")
 WEBHOOK_URL = MAIN_URL + "/telegram-bot-webhook/"
