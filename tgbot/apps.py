@@ -2,7 +2,7 @@ from django.apps import AppConfig
 from reforward.settings import WEBHOOK_URL
 import asyncio
 import logging
-
+import sys
 
 logger = logging.getLogger("bot")
 
@@ -25,6 +25,9 @@ class TgbotConfig(AppConfig):
     name = "tgbot"
 
     def ready(self):
+        if "makemigrations" in sys.argv or "migrate" in sys.argv:
+            return True
+
         from tgbot.bot.bot import bot
 
         asyncio.get_event_loop().run_until_complete(check_and_set_webhook())
