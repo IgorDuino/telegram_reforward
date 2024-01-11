@@ -6,6 +6,7 @@ def start_keyboard(enabled: bool) -> InlineKeyboardMarkup:
         InlineKeyboardButton("Правила", callback_data="rules"),
         InlineKeyboardButton("Новое правило", callback_data="add_rule"),
         InlineKeyboardButton("Общие фильры", callback_data="filters:general"),
+        InlineKeyboardButton("Новая папка", callback_data="add_folder"),
         InlineKeyboardButton("Новый общий фильтр", callback_data="add_general_filter"),
         InlineKeyboardButton(
             "Отключить пересылку" if enabled else "Включить пересылку",

@@ -23,3 +23,6 @@ Trigger: `{trigger}`
 Замена на: `{replacement}`
 """
 FILTERS_EMPTY = "Фильтров нет"
+ADD_FOLDER_NAME = "Отправьте название папки"
+ADD_FOLDER_PARENT = "Выберите родительскую папку"
+FOLDER_CREATED = "Папка создана"

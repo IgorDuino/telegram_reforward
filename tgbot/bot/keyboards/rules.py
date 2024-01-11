@@ -85,14 +85,6 @@ def rule_keyboard(rule: Rule) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(buttons)
 
 
-def cancel_keyboard() -> InlineKeyboardMarkup:
-    buttons = [
-        InlineKeyboardButton("Отмена", callback_data="cancel"),
-    ]
-
-    return InlineKeyboardMarkup.from_column(buttons)
-
-
 def choose_rule_direction_keyboard() -> InlineKeyboardMarkup:
     buttons = [
         InlineKeyboardButton("One way", callback_data="one_way"),
