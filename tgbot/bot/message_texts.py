@@ -22,3 +22,4 @@ Trigger: `{trigger}`
 Действие: `{action}`
 Замена на: `{replacement}`
 """
+FILTERS_EMPTY = "Фильтров нет"

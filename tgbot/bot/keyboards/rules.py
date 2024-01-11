@@ -67,7 +67,19 @@ def rule_keyboard(rule: Rule) -> InlineKeyboardMarkup:
                 else f"toggle:rule:0:{rule.id}",
             )
         ],
+        [
+            InlineKeyboardButton(
+                text="🌪 Фильтры",
+                callback_data=f"filters:{rule.id}",
+            )
+        ],
         [InlineKeyboardButton("🗑 Удалить", callback_data=f"delete:rule:{rule.id}")],
+        [
+            InlineKeyboardButton(
+                "🔙 Назад",
+                callback_data=f"folder:{rule.folder.id}" if rule.folder else "rules",
+            )
+        ],
     ]
 
     return InlineKeyboardMarkup(buttons)

@@ -149,7 +149,7 @@ class Rule(models.Model):
     a_chat_id = models.BigIntegerField()
     b_chat_id = models.BigIntegerField()
     direction = models.CharField(
-        max_length=1, choices=[("O", "One-way"), ("X", "Two-way")], default=("O", "One-way")
+        max_length=1, choices=[("O", "A -> B"), ("X", "A <-> B")], default="X"
     )
 
     folder = models.ForeignKey(Folder, on_delete=models.SET_NULL, null=True, blank=True)
@@ -160,6 +160,11 @@ class Rule(models.Model):
 
     top_signature = models.CharField(max_length=1000, null=True, blank=True)
     bottom_signature = models.CharField(max_length=1000, null=True, blank=True)
+    signature_direction = models.CharField(
+        max_length=2,
+        choices=[("AB", "A -> B"), ("BA", "B -> A"), ("X", "A <-> B")],
+        default="AB",
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 

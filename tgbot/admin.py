@@ -117,6 +117,7 @@ class RuleAdmin(admin.ModelAdmin):
         "is_active",
         "notify_a",
         "notify_b",
+        "signature_direction",
     ]
     list_filter = ["direction", "folder", "is_active"]
     search_fields = ("a_chat_id", "b_chat_id")
