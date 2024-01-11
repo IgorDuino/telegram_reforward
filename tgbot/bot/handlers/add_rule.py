@@ -6,12 +6,12 @@ from telegram import Update, ReplyKeyboardRemove
 from tgbot.bot import message_texts as m
 from tgbot.models import Rule, Folder
 
+from tgbot.bot.keyboards.general import cancel_keyboard
 from tgbot.bot.keyboards.rules import (
     choose_rule_direction_keyboard,
     yes_no_keyboard,
     who_notify_keyboard,
     skip_keyboard,
-    cancel_keyboard,
 )
 from tgbot.bot.keyboards.folders import chose_folder_keyboard
 

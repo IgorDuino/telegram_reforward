@@ -19,6 +19,11 @@ from tgbot.bot.handlers.start import start_handler
 from tgbot.bot.handlers.rules import rules_handler, rule_handler
 from tgbot.bot.handlers.filters import filters_handler, filter_handler
 from tgbot.bot.handlers.general import toggle_handler, delete_handler
+from tgbot.bot.handlers.folders import (
+    add_folder_handler,
+    add_folder_name_handler,
+    add_folder_parent_handler,
+)
 from tgbot.bot.handlers.add_rule import (
     add_rule_handler,
     add_rule_handler_a_chat_id,
@@ -46,22 +51,26 @@ def setup_application(app):
     app.add_handler(CallbackQueryHandler(rules_handler, pattern="rules"))
     app.add_handler(CallbackQueryHandler(rules_handler, pattern="folder:"))
     app.add_handler(CallbackQueryHandler(rule_handler, pattern="rule:"))
+
     app.add_handler(CallbackQueryHandler(filters_handler, pattern="filters:"))
     app.add_handler(CallbackQueryHandler(filter_handler, pattern="filter:"))
+
     app.add_handler(CallbackQueryHandler(toggle_handler, pattern="toggle:"))
     app.add_handler(CallbackQueryHandler(delete_handler, pattern="delete:"))
 
     add_folder_conv_handler = ConversationHandler(
         per_user=True,
-        entry_points=[CallbackQueryHandler(add_rule_handler, pattern="add_folder")],
+        entry_points=[CallbackQueryHandler(add_folder_handler, pattern="add_folder")],
         states={
             "ADD_FOLDER_NAME": [
-                MessageHandler(filters.TEXT, add_rule_handler_name),
+                MessageHandler(filters.TEXT, add_folder_name_handler),
+            ],
+            "ADD_FOLDER_PARENT": [
+                CallbackQueryHandler(add_folder_parent_handler, pattern="folder:"),
             ],
         },
         fallbacks=[CallbackQueryHandler(start_handler, pattern="cancel")],
     )
-
     app.add_handler(add_folder_conv_handler)
 
     add_rule_conv_handler = ConversationHandler(
@@ -98,7 +107,6 @@ def setup_application(app):
         },
         fallbacks=[CallbackQueryHandler(start_handler, pattern="cancel")],
     )
-
     app.add_handler(add_rule_conv_handler)
 
 
