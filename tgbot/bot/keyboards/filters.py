@@ -18,7 +18,7 @@ def filters_keyboard(filters: List[Filter], rule=None) -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     f"[{filter_.name if filter_.name else filter_.id}]",
-                    callback_data=f"filter:{filter_.id,}",
+                    callback_data=f"filter:{filter_.id}",
                 )
             ]
         )

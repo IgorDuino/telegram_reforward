@@ -19,12 +19,12 @@ async def filters_handler(update: Update, context: CallbackContext):
     rule_id = update.callback_query.data.split(":")[1]
     rule_id = int(rule_id) if rule_id != "general" else None
 
-    rule = None if rule_id is None else Rule.objects.get(id=rule_id)
+    rule = None if rule_id is None else await Rule.objects.aget(id=rule_id)
 
     filters = [f async for f in Filter.objects.filter(rule=rule).all()]
-
+    text = m.RULE_FILTERS.format(rule=rule) if rule_id else m.GENERAL_FILTERS
     await update.callback_query.edit_message_text(
-        text=m.RULE_FILTERS.format(rule=rule) if rule_id else m.GENERAL_FILTERS,
+        text=text if len(filters) > 0 else m.FILTERS_EMPTY,
         reply_markup=filters_keyboard(filters, rule=rule),
     )
 

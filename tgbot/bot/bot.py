@@ -51,6 +51,19 @@ def setup_application(app):
     app.add_handler(CallbackQueryHandler(toggle_handler, pattern="toggle:"))
     app.add_handler(CallbackQueryHandler(delete_handler, pattern="delete:"))
 
+    add_folder_conv_handler = ConversationHandler(
+        per_user=True,
+        entry_points=[CallbackQueryHandler(add_rule_handler, pattern="add_folder")],
+        states={
+            "ADD_FOLDER_NAME": [
+                MessageHandler(filters.TEXT, add_rule_handler_name),
+            ],
+        },
+        fallbacks=[CallbackQueryHandler(start_handler, pattern="cancel")],
+    )
+
+    app.add_handler(add_folder_conv_handler)
+
     add_rule_conv_handler = ConversationHandler(
         per_user=True,
         entry_points=[CallbackQueryHandler(add_rule_handler, pattern="add_rule")],

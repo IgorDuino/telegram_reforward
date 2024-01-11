@@ -21,7 +21,7 @@ async def rules_handler(update: Update, context: CallbackContext):
     u = await User.get_user(update, context)
 
     folder = None
-    if "folder" in update.callback_query.data:
+    if "folder" in update.callback_query.data and "nofolder" not in update.callback_query.data:
         folder = await Folder.objects.aget(id=update.callback_query.data.split(":")[1])
         rules = [rule async for rule in Rule.objects.filter(folder=folder).all()]
         folders = [folder async for folder in Folder.objects.filter(parent=folder).all()]

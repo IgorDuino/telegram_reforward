@@ -18,14 +18,17 @@ from tgbot.models import User, Filter, FilterActionEnum, Rule, Forwarding
 
 
 def signature_formatter(signature: str, message: Message) -> str:
-    signature = signature.replace("{first_name}", message.from_user.first_name or "")
-    signature = signature.replace("{last_name}", message.from_user.last_name or "")
-    signature = signature.replace("{username}", message.from_user.username or "")
-    signature = signature.replace("{title}", message.chat.title or "")
-    signature = signature.replace("{chat_id}", str(message.chat.id))
-    signature = signature.replace("{user_id}", str(message.from_user.id))
+    if signature:
+        signature = signature.replace("{first_name}", message.from_user.first_name or "")
+        signature = signature.replace("{last_name}", message.from_user.last_name or "")
+        signature = signature.replace("{username}", message.from_user.username or "")
+        signature = signature.replace("{title}", message.chat.title or "")
+        signature = signature.replace("{chat_id}", str(message.chat.id))
+        signature = signature.replace("{user_id}", str(message.from_user.id))
 
-    return signature
+        return signature
+    else:
+        return ""
 
 
 logger = logging.getLogger(__name__)
@@ -142,16 +145,22 @@ async def message_handler(client: Client, message: Message):
         if skip:
             continue
 
-        if message.text:
-            if rule.top_signature:
-                message.text = f"{rule.top_signature}\n{message.text}"
-            if rule.bottom_signature:
-                message.text = f"{message.text}\n{rule.bottom_signature}"
-        if message.caption:
-            if rule.top_signature:
-                message.caption = f"{rule.top_signature}\n{message.caption}"
-            if rule.bottom_signature:
-                message.caption = f"{message.caption}\n{rule.bottom_signature}"
+        top_sign = signature_formatter(rule.top_signature, message)
+        bottom_sign = signature_formatter(rule.bottom_signature, message)
+
+        if (rule.signature_direction == "X") or (
+            rule.signature_direction == "AB" and rule.a_chat_id == message.chat.id
+        ):
+            if message.text:
+                if top_sign:
+                    message.text = f"{top_sign}\n{message.text}"
+                if bottom_sign:
+                    message.text = f"{message.text}\n{bottom_sign}"
+            if message.caption:
+                if top_sign:
+                    message.caption = f"{top_sign}\n{message.caption}"
+                if bottom_sign:
+                    message.caption = f"{message.caption}\n{bottom_sign}"
 
         chat_id = rule.b_chat_id if rule.a_chat_id == message.chat.id else rule.a_chat_id
 
