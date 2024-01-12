@@ -4,13 +4,9 @@ from telegram.ext import CallbackContext, ConversationHandler
 from telegram import Update
 
 from tgbot.bot import message_texts as m
-from tgbot.models import User, Rule, Folder
+from tgbot.models import User, Rule, Folder, Filter
 
 from tgbot.bot.keyboards.start import start_keyboard
-from tgbot.bot.keyboards.rules import (
-    rules_keyboard,
-    rule_keyboard,
-)
 
 
 logger = logging.getLogger(__name__)
@@ -59,6 +55,10 @@ async def delete_handler(update: Update, context: CallbackContext):
     elif update.callback_query.data.split(":")[1] == "folder":
         folder = await Folder.objects.aget(id=id)
         await folder.adelete()
+
+    elif update.callback_query.data.split(":")[1] == "filter":
+        filter = await Filter.objects.aget(id=id)
+        await filter.adelete()
 
     await update.callback_query.edit_message_text(
         text=m.DELETED,

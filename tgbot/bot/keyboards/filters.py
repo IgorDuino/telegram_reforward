@@ -7,7 +7,7 @@ from telegram import (
 
 from typing import List
 
-from tgbot.models import Filter
+from tgbot.models import Filter, FilterTriggerTemplate
 
 
 def filters_keyboard(filters: List[Filter], rule=None) -> InlineKeyboardMarkup:
@@ -52,3 +52,49 @@ def filter_keyboard(filter_: Filter) -> InlineKeyboardMarkup:
     ]
 
     return InlineKeyboardMarkup(buttons)
+
+
+def add_filter_trigger_keyboard(
+    trigger_templates: List[FilterTriggerTemplate],
+) -> InlineKeyboardMarkup:
+    buttons = []
+
+    for trigger_template in trigger_templates:
+        buttons.append(
+            [
+                InlineKeyboardButton(
+                    trigger_template.name,
+                    callback_data=f"add_filter_trigger:{trigger_template.id}",
+                )
+            ]
+        )
+
+    buttons.append(
+        [
+            InlineKeyboardButton(
+                "Отмена",
+                callback_data="сancel",
+            )
+        ]
+    )
+
+    return InlineKeyboardMarkup(buttons)
+
+
+def add_filter_action_keyboard() -> InlineKeyboardMarkup:
+    buttons = [
+        InlineKeyboardButton("Заменить", callback_data="add_filter_action:R"),
+        InlineKeyboardButton("Пропустить сообщение", callback_data="add_filter_action:S"),
+        InlineKeyboardButton("Выключить правило", callback_data="add_filter_action:D"),
+        InlineKeyboardButton("Отмена", callback_data="сancel"),
+    ]
+
+    return InlineKeyboardMarkup.from_column(buttons)
+
+
+def add_filter_replace_keyboard() -> ReplyKeyboardMarkup:
+    buttons = [
+        KeyboardButton("УДАЛИТЬ"),
+    ]
+
+    return ReplyKeyboardMarkup.from_column(buttons)

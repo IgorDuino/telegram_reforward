@@ -73,6 +73,12 @@ def rule_keyboard(rule: Rule) -> InlineKeyboardMarkup:
                 callback_data=f"filters:{rule.id}",
             )
         ],
+        [
+            InlineKeyboardButton(
+                text="➕ Добавить фильтр",
+                callback_data=f"add_filter:{rule.id}",
+            )
+        ],
         [InlineKeyboardButton("🗑 Удалить", callback_data=f"delete:rule:{rule.id}")],
         [
             InlineKeyboardButton(
