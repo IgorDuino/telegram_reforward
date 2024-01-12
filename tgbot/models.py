@@ -188,6 +188,7 @@ class Rule(models.Model):
         elif self.notify_b:
             chat_ids = [self.b_chat_id]
 
+        # TODO!: noitfications
         # if chat_ids != []:
         #     async with Client(
         #         "", 0, "", session_string=TELEGRAM_USERBOT_SESSION_STRING, in_memory=True
@@ -250,6 +251,15 @@ class Filter(models.Model):
         if message.caption:
             message.caption = self.apply(message.caption)
         return message
+
+
+class FilterTriggerTemplate(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=256)
+    trigger = models.CharField(max_length=1024)
+
+    def __str__(self):
+        return self.name
 
 
 class Forwarding(models.Model):

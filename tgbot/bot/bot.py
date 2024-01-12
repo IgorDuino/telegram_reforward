@@ -36,6 +36,13 @@ from tgbot.bot.handlers.add_rule import (
     add_rule_handler_bottom_signature,
     add_rule_handler_name,
 )
+from tgbot.bot.handlers.filters import (
+    add_filter_handler,
+    add_filter_name_handler,
+    add_filter_trigger_handler,
+    add_filter_action_handler,
+    add_filter_handler_replacement,
+)
 
 from warnings import filterwarnings
 from telegram.warnings import PTBUserWarning
@@ -57,6 +64,28 @@ def setup_application(app):
 
     app.add_handler(CallbackQueryHandler(toggle_handler, pattern="toggle:"))
     app.add_handler(CallbackQueryHandler(delete_handler, pattern="delete:"))
+
+    add_filter_conv_handler = ConversationHandler(
+        per_user=True,
+        entry_points=[CallbackQueryHandler(add_filter_handler, pattern="add_filter:")],
+        states={
+            "ADD_FILTER_NAME": [
+                MessageHandler(filters.TEXT, add_filter_name_handler),
+            ],
+            "ADD_FILTER_TRIGGER": [
+                MessageHandler(filters.TEXT, add_filter_trigger_handler),
+                CallbackQueryHandler(add_filter_trigger_handler, pattern="add_filter_trigger:"),
+            ],
+            "ADD_FILTER_ACTION": [
+                CallbackQueryHandler(add_filter_action_handler, pattern="add_filter_action:"),
+            ],
+            "ADD_FILTER_REPLACEMENT": [
+                MessageHandler(filters.TEXT, add_filter_handler_replacement),
+            ],
+        },
+        fallbacks=[CallbackQueryHandler(start_handler, pattern="cancel")],
+    )
+    app.add_handler(add_filter_conv_handler)
 
     add_folder_conv_handler = ConversationHandler(
         per_user=True,

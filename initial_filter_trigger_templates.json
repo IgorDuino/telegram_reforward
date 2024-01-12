@@ -1,0 +1,10 @@
+[
+    {
+        "model": "tgbot.FilterTriggerTemplate",
+        "pk": 1,
+        "fields": {
+            "name": "Номер телефона",
+            "trigger": "(\\+)?((\\d{2,3}) ?\\d|\\d)(([ -]?\\d)|( ?(\\d{2,3}) ?)){5,12}\\d"
+        }
+    }
+]

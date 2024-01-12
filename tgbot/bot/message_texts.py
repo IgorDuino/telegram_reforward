@@ -26,3 +26,12 @@ FILTERS_EMPTY = "Фильтров нет"
 ADD_FOLDER_NAME = "Отправьте название папки"
 ADD_FOLDER_PARENT = "Выберите родительскую папку"
 FOLDER_CREATED = "Папка создана"
+
+
+ADD_FILTER_NAME = "Введите название фильтра"
+ADD_FILTER_TRIGGER = "Введите триггер фильтра или выберите из списка"
+ADD_FILTER_ACTION = "Выберите действие фильтра"
+ADD_FILTER_REPLACEMENT = (
+    "Введите замену или нажмите УДАЛИТЬ чтобы заменить триггер на пустую строку"
+)
+FILTER_CREATED = "Фильтр создан"

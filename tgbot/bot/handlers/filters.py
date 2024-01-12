@@ -2,11 +2,20 @@ import logging
 
 from telegram.ext import CallbackContext, ConversationHandler
 from telegram import Update
+from telegram import ReplyKeyboardRemove
 
 from tgbot.bot import message_texts as m
-from tgbot.models import User, Rule, Folder, Filter
+from tgbot.models import User, Rule, Filter, FilterTriggerTemplate, FilterActionEnum
 
-from tgbot.bot.keyboards.filters import filters_keyboard, filter_keyboard
+from tgbot.bot.handlers.start import start_handler
+from tgbot.bot.keyboards.filters import (
+    filters_keyboard,
+    filter_keyboard,
+    add_filter_action_keyboard,
+    add_filter_trigger_keyboard,
+    add_filter_replace_keyboard,
+)
+from tgbot.bot.keyboards.general import cancel_keyboard
 
 
 logger = logging.getLogger(__name__)
@@ -34,7 +43,7 @@ async def filters_handler(update: Update, context: CallbackContext):
 async def filter_handler(update: Update, context: CallbackContext):
     u = await User.get_user(update, context)
 
-    filter_ = Filter.objects.get(id=int(update.callback_query.data.split(":")[1]))
+    filter_ = await Filter.objects.aget(id=int(update.callback_query.data.split(":")[1]))
 
     await update.callback_query.edit_message_text(
         text=m.FILTER.format(
@@ -47,3 +56,112 @@ async def filter_handler(update: Update, context: CallbackContext):
     )
 
     return ConversationHandler.END
+
+
+async def add_filter_handler(update: Update, context: CallbackContext):
+    u = await User.get_user(update, context)
+
+    rule_id = update.callback_query.data.split(":")[1]
+    rule_id = int(rule_id) if rule_id != "general" else None
+
+    rule = None if rule_id is None else await Rule.objects.aget(id=rule_id)
+    context.user_data["filter_rule"] = rule
+
+    await update.callback_query.edit_message_text(
+        text=m.ADD_FILTER_NAME,
+        reply_markup=cancel_keyboard(),
+    )
+
+    return "ADD_FILTER_NAME"
+
+
+async def add_filter_name_handler(update: Update, context: CallbackContext):
+    u = await User.get_user(update, context)
+
+    context.user_data["filter_name"] = update.message.text
+
+    templates = [t async for t in FilterTriggerTemplate.objects.all()]
+
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=m.ADD_FILTER_TRIGGER,
+        reply_markup=add_filter_trigger_keyboard(templates),
+    )
+
+    return "ADD_FILTER_TRIGGER"
+
+
+async def add_filter_trigger_handler(update: Update, context: CallbackContext):
+    u = await User.get_user(update, context)
+
+    if update.callback_query:
+        trigger = await FilterTriggerTemplate.objects.aget(
+            id=int(update.callback_query.data.split(":")[1])
+        )
+
+        context.user_data["filter_trigger"] = trigger.trigger
+
+        await update.callback_query.edit_message_text(
+            text=m.ADD_FILTER_ACTION,
+            reply_markup=add_filter_action_keyboard(),
+        )
+
+        return "ADD_FILTER_ACTION"
+
+    context.user_data["filter_trigger"] = update.message.text
+
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=m.ADD_FILTER_ACTION,
+        reply_markup=add_filter_action_keyboard(),
+    )
+
+    return "ADD_FILTER_ACTION"
+
+
+async def add_filter_action_handler(update: Update, context: CallbackContext):
+    u = await User.get_user(update, context)
+
+    action = update.callback_query.data.split(":")[1]
+    action = FilterActionEnum(action)
+    context.user_data["filter_action"] = action
+
+    await update.callback_query.delete_message()
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=m.ADD_FILTER_REPLACEMENT,
+        reply_markup=add_filter_replace_keyboard(),
+    )
+
+    return "ADD_FILTER_REPLACEMENT"
+
+
+async def add_filter_handler_replacement(update: Update, context: CallbackContext):
+    u = await User.get_user(update, context)
+
+    replacement = update.message.text
+    if replacement == "УДАЛИТЬ":
+        replacement = ""
+
+    context.user_data["filter_replacement"] = replacement
+
+    rule = context.user_data["filter_rule"]
+    name = context.user_data["filter_name"]
+    regex = context.user_data["filter_trigger"]
+    action = context.user_data["filter_action"]
+    replacement = context.user_data["filter_replacement"]
+
+    await Filter.objects.acreate(
+        rule=rule,
+        name=name,
+        regex=regex,
+        action=action,
+        replacement=replacement,
+    )
+
+    await update.message.reply_text(
+        text=m.FILTER_CREATED,
+        reply_markup=ReplyKeyboardRemove(),
+    )
+
+    return await start_handler(update, context)
