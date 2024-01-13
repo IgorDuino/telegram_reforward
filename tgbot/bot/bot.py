@@ -55,16 +55,6 @@ def setup_application(app):
     app.add_handler(CommandHandler("start", start_handler))
     app.add_handler(CallbackQueryHandler(start_handler, pattern="start"))
 
-    app.add_handler(CallbackQueryHandler(rules_handler, pattern="rules"))
-    app.add_handler(CallbackQueryHandler(rules_handler, pattern="folder:"))
-    app.add_handler(CallbackQueryHandler(rule_handler, pattern="rule:"))
-
-    app.add_handler(CallbackQueryHandler(filters_handler, pattern="filters:"))
-    app.add_handler(CallbackQueryHandler(filter_handler, pattern="filter:"))
-
-    app.add_handler(CallbackQueryHandler(toggle_handler, pattern="toggle:"))
-    app.add_handler(CallbackQueryHandler(delete_handler, pattern="delete:"))
-
     add_filter_conv_handler = ConversationHandler(
         per_user=True,
         entry_points=[CallbackQueryHandler(add_filter_handler, pattern="add_filter:")],
@@ -137,6 +127,16 @@ def setup_application(app):
         fallbacks=[CallbackQueryHandler(start_handler, pattern="cancel")],
     )
     app.add_handler(add_rule_conv_handler)
+
+    app.add_handler(CallbackQueryHandler(rules_handler, pattern="rules"))
+    app.add_handler(CallbackQueryHandler(rules_handler, pattern="folder:"))
+    app.add_handler(CallbackQueryHandler(rule_handler, pattern="rule:"))
+
+    app.add_handler(CallbackQueryHandler(filters_handler, pattern="filters:"))
+    app.add_handler(CallbackQueryHandler(filter_handler, pattern="filter:"))
+
+    app.add_handler(CallbackQueryHandler(toggle_handler, pattern="toggle:"))
+    app.add_handler(CallbackQueryHandler(delete_handler, pattern="delete:"))
 
 
 defaults = Defaults(parse_mode=ParseMode.MARKDOWN_V2, tzinfo=pytz.timezone("Europe/Moscow"))
