@@ -106,7 +106,7 @@ class User(models.Model):
         return msg if success else None
 
     async def send_photo(self, *args, **kwargs) -> Optional[telegram.Message]:
-        bot = telegram.Bot(TELEGRAM_TOKEN)
+        bot = telegram.Bot(settings.TELEGRAM_TOKEN)
         try:
             msg = await bot.send_photo(
                 chat_id=self.user_id,
