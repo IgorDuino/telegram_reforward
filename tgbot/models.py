@@ -8,7 +8,7 @@ import telegram
 from django.db import models
 
 from tgbot.bot import utils
-from reforward.settings import TELEGRAM_TOKEN
+from reforward import settings
 from pyrogram import Client
 
 
@@ -83,7 +83,7 @@ class User(models.Model):
         reply_to_message_id=None,
         disable_web_page_preview=None,
     ) -> Optional[telegram.Message]:
-        bot = telegram.Bot(TELEGRAM_TOKEN)
+        bot = telegram.Bot(settings.TELEGRAM_TOKEN)
         try:
             msg = await bot.send_message(
                 chat_id=self.user_id,
@@ -181,28 +181,30 @@ class Rule(models.Model):
         self.is_active = is_active
         await self.asave()
         chat_ids = []
-        if self.notify_a and self.a_chat_id:
+        if self.notify_a and self.notify_b:
             chat_ids = [self.a_chat_id, self.b_chat_id]
         elif self.notify_a:
             chat_ids = [self.a_chat_id]
         elif self.notify_b:
             chat_ids = [self.b_chat_id]
 
-        # TODO!: noitfications
-        # if chat_ids != []:
-        #     async with Client(
-        #         "", 0, "", session_string=TELEGRAM_USERBOT_SESSION_STRING, in_memory=True
-        #     ) as client:
-        #         for chat_id in chat_ids:
-        #             try:
-        #                 text = (
-        #                     f"[REFORWARD] Пересылка {'отключена' if not is_active else 'включена'}"
-        #                 )
-        #                 await client.send_message(
-        #                     chat_id=chat_id,
-        #                     text=text,
-        #                 )
-        #             except Exception as e:
+        if chat_ids != []:
+            async with Client(
+                "userbot",
+                workdir="sessions",
+                phone_number=settings.PHONE_NUMBER,
+                api_id=settings.TELEGRAM_API_ID,
+                api_hash=settings.TELEGRAM_API_HASH,
+            ) as client:
+                text = f"Автоматическая пересылка {'отключена' if not is_active else 'включена'}"
+                for chat_id in chat_ids:
+                    try:
+                        await client.send_message(
+                            chat_id=chat_id,
+                            text=text,
+                        )
+                    except Exception as e:
+                        logger.error(e)
 
     async def enable(self):
         await self.change_active(True)
