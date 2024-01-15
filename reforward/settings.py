@@ -135,5 +135,3 @@ MAIN_URL = config("MAIN_URL")
 WEBHOOK_URL = MAIN_URL + "/telegram-bot-webhook/"
 
 CSRF_TRUSTED_ORIGINS = [MAIN_URL]
-
-LOGGING_CONFIG = None
