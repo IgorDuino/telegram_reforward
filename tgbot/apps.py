@@ -13,10 +13,12 @@ async def check_and_set_webhook():
     from tgbot.bot.bot import bot
 
     webhook = await bot.get_webhook_info()
-
-    if webhook.url != WEBHOOK_URL:
+    while webhook.url != WEBHOOK_URL:
+        print(webhook)
         print("Setting webhook")
-        await bot.set_webhook(WEBHOOK_URL)
+        print(await bot.set_webhook(WEBHOOK_URL))
+        webhook = await bot.get_webhook_info()
+        await asyncio.sleep(4)
     else:
         print("Webhook already set")
 
