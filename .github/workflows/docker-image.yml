@@ -3,7 +3,7 @@ name: Docker Build and Push
 on:
   push:
     branches:
-      - dev
+      - main
 
 jobs:
   build-and-push:
@@ -21,9 +21,9 @@ jobs:
       id: docker_build
       run: |
         docker buildx create --use
-        docker buildx build --file Dockerfile -t ghcr.io/${{ github.repository }}:${{ github.sha }} .
+        docker buildx build --file Dockerfile -t ghcr.io/${{ github.repository_owner }}/telegram_reforward:${{ github.sha }} .
         echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
-        docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
+        docker push ghcr.io/${{ github.repository_owner }}/telegram_reforward:${{ github.sha }}
 
     - name: Docker Image Digest
       run: echo ${{ steps.docker_build.outputs.digest }}
