@@ -27,4 +27,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/igorduino/telegram_reforward:${{ github.sha }}
+          tags: ghcr.io/igorduino/telegram_reforward:latest
