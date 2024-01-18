@@ -73,7 +73,7 @@ def add_filter_trigger_keyboard(
         [
             InlineKeyboardButton(
                 "Отмена",
-                callback_data="сancel",
+                callback_data="cancel",
             )
         ]
     )
@@ -86,7 +86,7 @@ def add_filter_action_keyboard() -> InlineKeyboardMarkup:
         InlineKeyboardButton("Заменить", callback_data="add_filter_action:R"),
         InlineKeyboardButton("Пропустить сообщение", callback_data="add_filter_action:S"),
         InlineKeyboardButton("Выключить правило", callback_data="add_filter_action:D"),
-        InlineKeyboardButton("Отмена", callback_data="сancel"),
+        InlineKeyboardButton("Отмена", callback_data="cancel"),
     ]
 
     return InlineKeyboardMarkup.from_column(buttons)
