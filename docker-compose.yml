@@ -15,7 +15,7 @@ services:
     container_name: reforward_redis
 
   web:
-    image: docker pull ghcr.io/igorduino/telegram_reforward:latest
+    image: ghcr.io/igorduino/telegram_reforward:latest
     container_name: reforward_django
     command: bash -c "python manage.py migrate && gunicorn --bind :8000 --worker-class uvicorn.workers.UvicornWorker reforward.asgi:application"
     ports:
@@ -26,7 +26,7 @@ services:
       - db
 
   userbot:
-    image: docker pull ghcr.io/igorduino/telegram_reforward:latest
+    image: ghcr.io/igorduino/telegram_reforward:latest
     container_name: reforward_userbot
     command: python run_userbot.py
     volumes:
@@ -37,7 +37,7 @@ services:
       - web
 
   celery:
-    image: docker pull ghcr.io/igorduino/telegram_reforward:latest
+    image: ghcr.io/igorduino/telegram_reforward:latest
     container_name: reforward_celery
     command: celery -A reforward worker --loglevel=INFO
     env_file:
@@ -47,7 +47,7 @@ services:
       - web
 
   celery-beat:
-    image: docker pull ghcr.io/igorduino/telegram_reforward:latest
+    image: ghcr.io/igorduino/telegram_reforward:latest
     container_name: reforward_beat
     command: celery -A reforward beat -l info --scheduler django_celery_beat.schedulers.DatabaseScheduler
     env_file:
