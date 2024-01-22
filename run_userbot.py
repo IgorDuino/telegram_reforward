@@ -15,6 +15,7 @@ from pyrogram.types import Message
 from pyrogram.enums import ParseMode
 import logging
 from tgbot.models import User, Filter, FilterActionEnum, Rule, Forwarding
+from pyrogram_utils import copy
 
 
 def signature_formatter(signature: str, message: Message) -> str:
@@ -178,7 +179,11 @@ async def message_handler(client: Client, message: Message):
                 if forwarding_b:
                     reply_to_message_id = forwarding_b.original_message_id
 
-        new_message = await message.copy(chat_id=chat_id, reply_to_message_id=reply_to_message_id)
+        new_message = await copy(
+            message=message,
+            chat_id=chat_id,
+            reply_to_message_id=reply_to_message_id,
+        )
 
         if new_message:
             new_message: Message
