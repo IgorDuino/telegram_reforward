@@ -14,6 +14,7 @@ from tgbot.bot.keyboards.filters import (
     add_filter_action_keyboard,
     add_filter_trigger_keyboard,
     add_filter_replace_keyboard,
+    add_filter_confirm_keyboard,
 )
 from tgbot.bot.keyboards.general import cancel_keyboard
 
@@ -49,7 +50,7 @@ async def filter_handler(update: Update, context: CallbackContext):
         text=m.FILTER.format(
             filter_name=filter_.name if filter_.name else filter_.id,
             trigger=filter_.regex,
-            action=filter_.action,
+            action=filter_.action_str,
             replacement=filter_.replacement,
         ),
         reply_markup=filter_keyboard(filter_),
@@ -126,17 +127,32 @@ async def add_filter_action_handler(update: Update, context: CallbackContext):
     action = FilterActionEnum(action)
     context.user_data["filter_action"] = action
 
-    await update.callback_query.delete_message()
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=m.ADD_FILTER_REPLACEMENT,
-        reply_markup=add_filter_replace_keyboard(),
+    if action == FilterActionEnum.REPLACE:
+        await update.callback_query.delete_message()
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=m.ADD_FILTER_REPLACEMENT,
+            reply_markup=add_filter_replace_keyboard(),
+        )
+
+        return "ADD_FILTER_REPLACEMENT"
+
+    context.user_data["filter_replacement"] = ""
+
+    await update.callback_query.edit_message_text(
+        text=m.ADD_FILTER_CONFIRM.format(
+            name=context.user_data["filter_name"],
+            trigger=context.user_data["filter_trigger"],
+            action=action.label,
+            replacement=context.user_data["filter_replacement"],
+        ),
+        reply_markup=add_filter_confirm_keyboard(),
     )
 
-    return "ADD_FILTER_REPLACEMENT"
+    return "ADD_FILTER_CONFIRM"
 
 
-async def add_filter_handler_replacement(update: Update, context: CallbackContext):
+async def add_filter_replacement_handler(update: Update, context: CallbackContext):
     u = await User.get_user(update, context)
 
     replacement = update.message.text
@@ -145,6 +161,20 @@ async def add_filter_handler_replacement(update: Update, context: CallbackContex
 
     context.user_data["filter_replacement"] = replacement
 
+    await update.message.reply_text(
+        text=m.ADD_FILTER_CONFIRM.format(
+            name=context.user_data["filter_name"],
+            trigger=context.user_data["filter_trigger"],
+            action=FilterActionEnum(context.user_data["filter_action"]).label,
+            replacement=context.user_data["filter_replacement"],
+        ),
+        reply_markup=add_filter_confirm_keyboard(),
+    )
+
+    return "ADD_FILTER_CONFIRM"
+
+
+async def add_filter_confirm_handler(update: Update, context: CallbackContext):
     rule = context.user_data["filter_rule"]
     name = context.user_data["filter_name"]
     regex = context.user_data["filter_trigger"]
@@ -159,9 +189,8 @@ async def add_filter_handler_replacement(update: Update, context: CallbackContex
         replacement=replacement,
     )
 
-    await update.message.reply_text(
+    await update.callback_query.edit_message_text(
         text=m.FILTER_CREATED,
-        reply_markup=ReplyKeyboardRemove(),
     )
 
     return await start_handler(update, context)

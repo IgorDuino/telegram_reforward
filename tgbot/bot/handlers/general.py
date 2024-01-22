@@ -21,8 +21,10 @@ async def toggle_handler(update: Update, context: CallbackContext):
     if a == "rule":
         id = int(update.callback_query.data.split(":")[3])
         rule = await Rule.objects.aget(id=id)
-        rule.is_active = bool(int(update.callback_query.data.split(":")[2]))
-        await rule.asave()
+        if bool(int(update.callback_query.data.split(":")[2])):
+            await rule.enable()
+        else:
+            await rule.disable()
 
     elif a == "folder":
         id = int(update.callback_query.data.split(":")[3])

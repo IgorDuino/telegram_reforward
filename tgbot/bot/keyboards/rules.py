@@ -126,3 +126,12 @@ def skip_keyboard() -> ReplyKeyboardMarkup:
     ]
 
     return ReplyKeyboardMarkup.from_column(buttons)
+
+
+def notify_myself_keyboard() -> InlineKeyboardMarkup:
+    buttons = [
+        InlineKeyboardButton("Уведомлять меня", callback_data="notify_myself:1"),
+        InlineKeyboardButton("Не уведомлять меня", callback_data="notify_myself:0"),
+    ]
+
+    return InlineKeyboardMarkup.from_column(buttons)

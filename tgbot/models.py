@@ -157,6 +157,7 @@ class Rule(models.Model):
 
     notify_a = models.BooleanField(default=False)
     notify_b = models.BooleanField(default=False)
+    notify_myself = models.BooleanField(default=True)
 
     top_signature = models.CharField(max_length=1000, null=True, blank=True)
     bottom_signature = models.CharField(max_length=1000, null=True, blank=True)
@@ -204,6 +205,7 @@ class Rule(models.Model):
                             text=text,
                         )
                     except Exception as e:
+                        print(e)
                         logger.error(e)
 
     async def enable(self):
@@ -232,6 +234,10 @@ class Filter(models.Model):
     replacement = models.CharField(max_length=512, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def action_str(self):
+        return FilterActionEnum(self.action).label
+
     def is_match(self, text, ignore_case=True):
         flags = re.IGNORECASE if ignore_case else 0
         return bool(re.search(self.regex, text, flags=flags))
@@ -257,7 +263,7 @@ class Filter(models.Model):
 
 class FilterTriggerTemplate(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=256)
+    name = models.CharField(max_length=256, unique=True)
     trigger = models.CharField(max_length=1024)
 
     def __str__(self):
