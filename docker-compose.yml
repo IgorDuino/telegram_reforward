@@ -4,7 +4,7 @@ services:
   db:
     image: postgres
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data/
+      - postgres_data:/var/lib/postgresql/data/
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASS}
@@ -62,3 +62,6 @@ services:
       - redis
       - celery
       - web
+
+volumes:
+  postgres_data:
