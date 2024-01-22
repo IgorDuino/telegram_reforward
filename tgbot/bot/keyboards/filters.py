@@ -98,3 +98,12 @@ def add_filter_replace_keyboard() -> ReplyKeyboardMarkup:
     ]
 
     return ReplyKeyboardMarkup.from_column(buttons)
+
+
+def add_filter_confirm_keyboard() -> InlineKeyboardMarkup:
+    buttons = [
+        InlineKeyboardButton("Подтвердить", callback_data="add_filter_confirm"),
+        InlineKeyboardButton("Отмена", callback_data="cancel"),
+    ]
+
+    return InlineKeyboardMarkup.from_column(buttons)

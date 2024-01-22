@@ -232,6 +232,10 @@ class Filter(models.Model):
     replacement = models.CharField(max_length=512, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def action_str(self):
+        return FilterActionEnum(self.action).label
+
     def is_match(self, text, ignore_case=True):
         flags = re.IGNORECASE if ignore_case else 0
         return bool(re.search(self.regex, text, flags=flags))
