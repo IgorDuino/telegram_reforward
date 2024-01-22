@@ -263,7 +263,7 @@ class Filter(models.Model):
 
 class FilterTriggerTemplate(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=256)
+    name = models.CharField(max_length=256, unique=True)
     trigger = models.CharField(max_length=1024)
 
     def __str__(self):
