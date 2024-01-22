@@ -31,3 +31,9 @@ class TgbotConfig(AppConfig):
             from tgbot.bot.bot import bot
 
             asyncio.get_event_loop().run_until_complete(check_and_set_webhook())
+
+            from tgbot.models import FilterTriggerTemplate
+            from django.core.management import call_command
+
+            if not FilterTriggerTemplate.objects.exists():
+                call_command("loaddata", "initial_filter_trigger_templates.json")
