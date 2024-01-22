@@ -191,7 +191,6 @@ async def add_filter_confirm_handler(update: Update, context: CallbackContext):
 
     await update.callback_query.edit_message_text(
         text=m.FILTER_CREATED,
-        reply_markup=ReplyKeyboardRemove(),
     )
 
     return await start_handler(update, context)
