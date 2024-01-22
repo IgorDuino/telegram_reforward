@@ -15,6 +15,14 @@ from pyrogram.types import Message
 from pyrogram.enums import ParseMode
 import logging
 from tgbot.models import User, Filter, FilterActionEnum, Rule, Forwarding
+from pyrogram_utils import copy
+
+import telegram
+
+from asgiref.sync import sync_to_async
+
+
+bot = telegram.Bot(settings.TELEGRAM_TOKEN)
 
 
 def signature_formatter(signature: str, message: Message) -> str:
@@ -88,7 +96,7 @@ def deleted_messages_handler(client: Client, messages: list[Message]):
             forwarding.delete()
 
 
-@app.on_message(filters=filters.command("getid"))
+@app.on_message(filters=filters.command("getid") & filters.user(settings.TELEGRAM_ID))
 async def getid_handler(client: Client, message: Message):
     requested_chat_id = message.chat.id
 
@@ -111,6 +119,105 @@ async def getid_handler(client: Client, message: Message):
     await client.mark_chat_unread(chat_id=my_id)
 
 
+@app.on_edited_message()
+async def edited_message_handler(client: Client, message: Message):
+    if not ((await User.objects.aget(user_id=my_id)).is_forwarding_enabled):
+        return
+
+    forwardings = Forwarding.objects.filter(
+        Q(original_message_id=message.id) | Q(new_message_id=message.id)
+    ).all()
+
+    async for forwarding in forwardings:
+        rule = await sync_to_async(getattr)(forwarding, "rule")
+        to_edit_chat_id = rule.a_chat_id if rule.b_chat_id == message.chat.id else rule.b_chat_id
+        to_edit_message_id = (
+            forwarding.new_message_id
+            if message.id == forwarding.original_message_id
+            else forwarding.original_message_id
+        )
+
+        filters = Filter.objects.filter(Q(rule=None) | Q(rule=rule))
+
+        skip = False
+
+        async for filter in filters:
+            if not filter.is_match_on_message(message):
+                continue
+
+            if filter.action == FilterActionEnum.SKIP:
+                skip = True
+                break
+
+            if filter.action == FilterActionEnum.DISABLE_RULE:
+                skip = True
+                await rule.disable()
+
+                if rule.notify_myself:
+                    await bot.send_message(
+                        chat_id=settings.TELEGRAM_ID,
+                        text=f"Пересылка {rule} отключена, так как сработал фильтр {filter}",
+                    )
+
+                break
+
+            if filter.action == FilterActionEnum.REPLACE:
+                message = filter.apply_on_message(message)
+
+        if skip:
+            try:
+                await client.delete_messages(
+                    chat_id=to_edit_chat_id,
+                    message_ids=to_edit_message_id,
+                )
+            except Exception as e:
+                pass
+
+        top_sign = signature_formatter(rule.top_signature, message)
+        bottom_sign = signature_formatter(rule.bottom_signature, message)
+
+        if (
+            rule.signature_direction == "X"
+            or (forwarding.original_message_id == message.id and rule.signature_direction == "AB")
+            or (forwarding.new_message_id == message.id and rule.signature_direction == "BA")
+        ):
+            if message.text:
+                if top_sign:
+                    message.text = f"{top_sign}\n{message.text}"
+                if bottom_sign:
+                    message.text = f"{message.text}\n{bottom_sign}"
+
+            if message.caption:
+                if top_sign:
+                    message.caption = f"{top_sign}\n{message.caption}"
+                if bottom_sign:
+                    message.caption = f"{message.caption}\n{bottom_sign}"
+
+        if message.text:
+            await client.edit_message_text(
+                chat_id=to_edit_chat_id,
+                message_id=to_edit_message_id,
+                text=message.text,
+                reply_markup=message.reply_markup,
+            )
+
+        elif message.caption:
+            await client.edit_message_caption(
+                chat_id=to_edit_chat_id,
+                message_id=to_edit_message_id,
+                caption=message.caption,
+                reply_markup=message.reply_markup,
+            )
+
+        elif message.photo:
+            await client.edit_message_media(
+                chat_id=to_edit_chat_id,
+                message_id=to_edit_message_id,
+                media=message.photo.file_id,
+                reply_markup=message.reply_markup,
+            )
+
+
 @app.on_message()
 async def message_handler(client: Client, message: Message):
     if not (await User.objects.aget(user_id=my_id)).is_forwarding_enabled:
@@ -125,7 +232,7 @@ async def message_handler(client: Client, message: Message):
 
     async for rule in rules:
         skip = False
-        filters = Filter.objects.filter(Q(rule=None) | Q(rule=rule))
+        filters = Filter.objects.filter(Q(rule=None) | Q(rule=rule)).all()
         async for filter in filters:
             if not filter.is_match_on_message(message):
                 continue
@@ -137,6 +244,13 @@ async def message_handler(client: Client, message: Message):
             if filter.action == FilterActionEnum.DISABLE_RULE:
                 skip = True
                 await rule.disable()
+
+                if rule.notify_myself:
+                    await bot.send_message(
+                        chat_id=settings.TELEGRAM_ID,
+                        text=f"Пересылка {rule} отключена, так как сработал фильтр {filter}",
+                    )
+
                 break
 
             if filter.action == FilterActionEnum.REPLACE:
@@ -178,7 +292,11 @@ async def message_handler(client: Client, message: Message):
                 if forwarding_b:
                     reply_to_message_id = forwarding_b.original_message_id
 
-        new_message = await message.copy(chat_id=chat_id, reply_to_message_id=reply_to_message_id)
+        new_message = await copy(
+            message=message,
+            chat_id=chat_id,
+            reply_to_message_id=reply_to_message_id,
+        )
 
         if new_message:
             new_message: Message

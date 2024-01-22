@@ -30,8 +30,9 @@ from tgbot.bot.handlers.add_rule import (
     add_rule_handler_b_chat_id,
     add_rule_handler_direction,
     add_rule_handler_folder_or_not,
-    add_rule_handler_folder,
+    add_rule_folder_handler,
     add_rule_handler_who_notify,
+    add_rule_notify_myself_handler,
     add_rule_handler_top_signature,
     add_rule_handler_bottom_signature,
     add_rule_handler_name,
@@ -41,7 +42,8 @@ from tgbot.bot.handlers.filters import (
     add_filter_name_handler,
     add_filter_trigger_handler,
     add_filter_action_handler,
-    add_filter_handler_replacement,
+    add_filter_replacement_handler,
+    add_filter_confirm_handler,
 )
 
 from warnings import filterwarnings
@@ -70,7 +72,10 @@ def setup_application(app):
                 CallbackQueryHandler(add_filter_action_handler, pattern="add_filter_action:"),
             ],
             "ADD_FILTER_REPLACEMENT": [
-                MessageHandler(filters.TEXT, add_filter_handler_replacement),
+                MessageHandler(filters.TEXT, add_filter_replacement_handler),
+            ],
+            "ADD_FILTER_CONFIRM": [
+                CallbackQueryHandler(add_filter_confirm_handler, pattern="add_filter_confirm"),
             ],
         },
         fallbacks=[CallbackQueryHandler(start_handler, pattern="cancel")],
@@ -109,7 +114,10 @@ def setup_application(app):
                 CallbackQueryHandler(add_rule_handler_folder_or_not, pattern="yes|no"),
             ],
             "ADD_RULE_FOLDER": [
-                CallbackQueryHandler(add_rule_handler_folder, pattern="folder:"),
+                CallbackQueryHandler(add_rule_folder_handler, pattern="folder:"),
+            ],
+            "ADD_RULE_NOTIFY_MYSELF": [
+                CallbackQueryHandler(add_rule_notify_myself_handler, pattern="notify_myself:"),
             ],
             "ADD_RULE_WHO_NOTIFY": [
                 CallbackQueryHandler(add_rule_handler_who_notify, pattern="notify:"),
