@@ -41,7 +41,8 @@ from tgbot.bot.handlers.filters import (
     add_filter_name_handler,
     add_filter_trigger_handler,
     add_filter_action_handler,
-    add_filter_handler_replacement,
+    add_filter_replacement_handler,
+    add_filter_confirm_handler,
 )
 
 from warnings import filterwarnings
@@ -70,7 +71,10 @@ def setup_application(app):
                 CallbackQueryHandler(add_filter_action_handler, pattern="add_filter_action:"),
             ],
             "ADD_FILTER_REPLACEMENT": [
-                MessageHandler(filters.TEXT, add_filter_handler_replacement),
+                MessageHandler(filters.TEXT, add_filter_replacement_handler),
+            ],
+            "ADD_FILTER_CONFIRM": [
+                CallbackQueryHandler(add_filter_confirm_handler, pattern="add_filter_confirm"),
             ],
         },
         fallbacks=[CallbackQueryHandler(start_handler, pattern="cancel")],

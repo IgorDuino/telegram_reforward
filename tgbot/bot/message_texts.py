@@ -34,4 +34,11 @@ ADD_FILTER_ACTION = "Выберите действие фильтра"
 ADD_FILTER_REPLACEMENT = (
     "Введите замену или нажмите УДАЛИТЬ чтобы заменить триггер на пустую строку"
 )
+ADD_FILTER_CONFIRM = """
+Подтвердите создание фильтра:
+Имя: `{name}`
+Trigger: `{trigger}`
+Действие: `{action}`
+Замена на: `{replacement}`
+"""
 FILTER_CREATED = "Фильтр создан"
