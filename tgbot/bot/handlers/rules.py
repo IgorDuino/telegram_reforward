@@ -55,9 +55,13 @@ async def rule_handler(update: Update, context: CallbackContext):
             name=rule.name,
             a_chat_id=rule.a_chat_id,
             b_chat_id=rule.b_chat_id,
+            notify_myself="Yes" if rule.notify_myself else "No",
+            notify_a="Yes" if rule.notify_a else "No",
+            notify_b="Yes" if rule.notify_b else "No",
             direction="One way" if rule.direction == "O" else "Two way",
             top_signature=rule.top_signature,
             bottom_signature=rule.bottom_signature,
+            signature_direction=rule.signature_direction,
         ),
         reply_markup=rule_keyboard(rule),
     )

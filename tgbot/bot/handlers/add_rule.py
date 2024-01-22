@@ -12,6 +12,7 @@ from tgbot.bot.keyboards.rules import (
     yes_no_keyboard,
     who_notify_keyboard,
     skip_keyboard,
+    notify_myself_keyboard,
 )
 from tgbot.bot.keyboards.folders import chose_folder_keyboard
 
@@ -95,17 +96,28 @@ async def add_rule_handler_folder_or_not(update: Update, context: CallbackContex
     context.user_data["folder_id"] = None
 
     await update.callback_query.edit_message_text(
-        text="Кого нужно оповещать когда пересылка включается или выключается?",
-        reply_markup=who_notify_keyboard(),
+        text="Бот должен присылать мне уведомление когда срабатывает фильтр на отключение правила?",
+        reply_markup=notify_myself_keyboard(),
     )
 
-    return "ADD_RULE_WHO_NOTIFY"
+    return "ADD_RULE_NOTIFY_MYSELF"
 
 
-async def add_rule_handler_folder(update: Update, context: CallbackContext):
+async def add_rule_folder_handler(update: Update, context: CallbackContext):
     folder_id = update.callback_query.data.split(":")[1]
     folder_id = None if folder_id == "nofolder" else int(folder_id)
     context.user_data["folder_id"] = folder_id
+
+    await update.callback_query.edit_message_text(
+        text="Бот должен присылать мне уведомление когда срабатывает фильтр на отключение правила?",
+        reply_markup=notify_myself_keyboard(),
+    )
+
+    return "ADD_RULE_NOTIFY_MYSELF"
+
+
+async def add_rule_notify_myself_handler(update: Update, context: CallbackContext):
+    context.user_data["notify_myself"] = bool(int(update.callback_query.data.split(":")[1]))
 
     await update.callback_query.edit_message_text(
         text="Кого нужно оповещать когда пересылка включается или выключается?",
@@ -191,6 +203,7 @@ async def add_rule_handler_name(update: Update, context: CallbackContext):
         folder=folder,
         notify_a=notify_a,
         notify_b=notify_b,
+        notify_myself=context.user_data["notify_myself"],
         top_signature=context.user_data["top_signature"],
         bottom_signature=context.user_data["bottom_signature"],
         name=context.user_data["name"],
