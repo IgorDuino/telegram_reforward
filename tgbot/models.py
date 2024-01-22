@@ -157,6 +157,7 @@ class Rule(models.Model):
 
     notify_a = models.BooleanField(default=False)
     notify_b = models.BooleanField(default=False)
+    notify_myself = models.BooleanField(default=True)
 
     top_signature = models.CharField(max_length=1000, null=True, blank=True)
     bottom_signature = models.CharField(max_length=1000, null=True, blank=True)
@@ -204,6 +205,7 @@ class Rule(models.Model):
                             text=text,
                         )
                     except Exception as e:
+                        print(e)
                         logger.error(e)
 
     async def enable(self):

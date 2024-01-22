@@ -17,6 +17,11 @@ import logging
 from tgbot.models import User, Filter, FilterActionEnum, Rule, Forwarding
 from pyrogram_utils import copy
 
+import telegram
+
+
+bot = telegram.Bot(settings.TELEGRAM_TOKEN)
+
 
 def signature_formatter(signature: str, message: Message) -> str:
     if signature:
@@ -138,6 +143,13 @@ async def message_handler(client: Client, message: Message):
             if filter.action == FilterActionEnum.DISABLE_RULE:
                 skip = True
                 await rule.disable()
+
+                if rule.notify_myself:
+                    await bot.send_message(
+                        chat_id=settings.TELEGRAM_ID,
+                        text=f"Пересылка {rule} отключена, так как сработал фильтр {filter}",
+                    )
+
                 break
 
             if filter.action == FilterActionEnum.REPLACE:
