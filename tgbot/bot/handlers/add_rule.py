@@ -137,7 +137,9 @@ async def add_rule_handler_who_notify(update: Update, context: CallbackContext):
 async def add_rule_handler_top_signature(update: Update, context: CallbackContext):
     top_signature = update.message.text
 
-    context.user_data["top_signature"] = f"<i>{top_signature}</i>" if top_signature != "ПРОПУСТИТЬ" else ""
+    context.user_data["top_signature"] = (
+        f"<i>{top_signature}</i>" if top_signature != "ПРОПУСТИТЬ" else ""
+    )
 
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
