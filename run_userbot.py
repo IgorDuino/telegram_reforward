@@ -96,7 +96,7 @@ def deleted_messages_handler(client: Client, messages: list[Message]):
             forwarding.delete()
 
 
-@app.on_message(filters=filters.command("getid"))
+@app.on_message(filters=filters.command("getid") & filters.user(settings.TELEGRAM_ID))
 async def getid_handler(client: Client, message: Message):
     requested_chat_id = message.chat.id
 
@@ -136,10 +136,6 @@ async def edited_message_handler(client: Client, message: Message):
             if message.id == forwarding.original_message_id
             else forwarding.original_message_id
         )
-
-        print(message.id, message.chat.id)
-
-        print(to_edit_chat_id, to_edit_message_id)
 
         filters = Filter.objects.filter(Q(rule=None) | Q(rule=rule))
 
