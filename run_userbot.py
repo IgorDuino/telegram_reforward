@@ -223,7 +223,7 @@ async def message_handler(client: Client, message: Message):
     if not (await User.objects.aget(user_id=my_id)).is_forwarding_enabled:
         return
 
-    if message.from_user.id == my_id:
+    if message.from_user.id == my_id and message.chat.id > 0:
         return
 
     rules_a = Rule.objects.filter(a_chat_id=message.chat.id, is_active=True).all()
