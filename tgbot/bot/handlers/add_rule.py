@@ -33,10 +33,18 @@ async def add_rule_handler(update: Update, context: CallbackContext):
 
 
 async def add_rule_handler_a_chat_id(update: Update, context: CallbackContext):
-    if update.message.forward_from:
-        context.user_data["a_chat_id"] = update.message.forward_from.id
-    else:
-        context.user_data["a_chat_id"] = update.message.text
+    try:
+        if update.message.forward_from:
+            context.user_data["a_chat_id"] = int(update.message.forward_from.id)
+        else:
+            context.user_data["a_chat_id"] = int(update.message.text)
+    except ValueError:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=m.WRONG_CHAT_ID,
+        )
+
+        return "ADD_RULE_A_CHAT_ID"
 
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -48,10 +56,18 @@ async def add_rule_handler_a_chat_id(update: Update, context: CallbackContext):
 
 
 async def add_rule_handler_b_chat_id(update: Update, context: CallbackContext):
-    if update.message.forward_from:
-        context.user_data["b_chat_id"] = update.message.forward_from.id
-    else:
-        context.user_data["b_chat_id"] = update.message.text
+    try:
+        if update.message.forward_from:
+            context.user_data["b_chat_id"] = int(update.message.forward_from.id)
+        else:
+            context.user_data["b_chat_id"] = int(update.message.text)
+    except ValueError:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=m.WRONG_CHAT_ID,
+        )
+
+        return "ADD_RULE_B_CHAT_ID"
 
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -197,8 +213,8 @@ async def add_rule_handler_name(update: Update, context: CallbackContext):
         notify_b = True
 
     rule = Rule(
-        a_chat_id=int(context.user_data["a_chat_id"]),
-        b_chat_id=int(context.user_data["b_chat_id"]),
+        a_chat_id=context.user_data["a_chat_id"],
+        b_chat_id=context.user_data["b_chat_id"],
         direction=context.user_data["direction"],
         folder=folder,
         notify_a=notify_a,
