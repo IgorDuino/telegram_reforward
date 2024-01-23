@@ -47,4 +47,4 @@ Trigger: `{trigger}`
 """
 FILTER_CREATED = "Фильтр создан"
 
-WRONG_CHAT_ID = "Неверный chat_id, попробуйте еще раз"
+WRONG_CHAT_ID = "Неверный chat\_id, попробуйте еще раз"
