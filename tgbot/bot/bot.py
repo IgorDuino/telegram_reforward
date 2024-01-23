@@ -35,6 +35,7 @@ from tgbot.bot.handlers.add_rule import (
     add_rule_notify_myself_handler,
     add_rule_handler_top_signature,
     add_rule_handler_bottom_signature,
+    add_rule_signature_direction_handler,
     add_rule_handler_name,
 )
 from tgbot.bot.handlers.filters import (
@@ -127,6 +128,11 @@ def setup_application(app):
             ],
             "ADD_RULE_BOTTOM_SIGNATURE": [
                 MessageHandler(filters.TEXT, add_rule_handler_bottom_signature),
+            ],
+            "ADD_RULE_SIGNATURE_DIRECTION": [
+                CallbackQueryHandler(
+                    add_rule_signature_direction_handler, pattern="signature_direction:"
+                ),
             ],
             "ADD_RULE_NAME": [
                 MessageHandler(filters.TEXT, add_rule_handler_name),

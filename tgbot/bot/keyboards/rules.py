@@ -135,3 +135,13 @@ def notify_myself_keyboard() -> InlineKeyboardMarkup:
     ]
 
     return InlineKeyboardMarkup.from_column(buttons)
+
+
+def signature_direction_keyboard() -> InlineKeyboardMarkup:
+    buttons = [
+        InlineKeyboardButton("A -> B", callback_data="signature_direction:AB"),
+        InlineKeyboardButton("B -> A", callback_data="signature_direction:BA"),
+        InlineKeyboardButton("A <-> B", callback_data="signature_direction:X"),
+    ]
+
+    return InlineKeyboardMarkup.from_column(buttons)
