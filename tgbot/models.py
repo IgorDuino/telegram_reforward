@@ -259,6 +259,9 @@ class Filter(models.Model):
         if message.caption:
             message.caption = self.apply(message.caption)
         return message
+    
+    def __str__(self):
+        return self.name or self.regex
 
 
 class FilterTriggerTemplate(models.Model):
