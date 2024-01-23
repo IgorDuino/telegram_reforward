@@ -4,6 +4,7 @@ from telegram.ext import CallbackContext
 from telegram import Update, ReplyKeyboardRemove
 
 from tgbot.bot import message_texts as m
+from telegram import Bot, Message
 from tgbot.models import Rule, Folder
 
 from tgbot.bot.keyboards.general import cancel_keyboard
@@ -13,6 +14,7 @@ from tgbot.bot.keyboards.rules import (
     who_notify_keyboard,
     skip_keyboard,
     notify_myself_keyboard,
+    signature_direction_keyboard,
 )
 from tgbot.bot.keyboards.folders import chose_folder_keyboard
 
@@ -33,10 +35,18 @@ async def add_rule_handler(update: Update, context: CallbackContext):
 
 
 async def add_rule_handler_a_chat_id(update: Update, context: CallbackContext):
-    if update.message.forward_from:
-        context.user_data["a_chat_id"] = update.message.forward_from.id
-    else:
-        context.user_data["a_chat_id"] = update.message.text
+    try:
+        if update.message.forward_from:
+            context.user_data["a_chat_id"] = int(update.message.forward_from.id)
+        else:
+            context.user_data["a_chat_id"] = int(update.message.text)
+    except ValueError:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=m.WRONG_CHAT_ID,
+        )
+
+        return "ADD_RULE_A_CHAT_ID"
 
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -48,10 +58,18 @@ async def add_rule_handler_a_chat_id(update: Update, context: CallbackContext):
 
 
 async def add_rule_handler_b_chat_id(update: Update, context: CallbackContext):
-    if update.message.forward_from:
-        context.user_data["b_chat_id"] = update.message.forward_from.id
-    else:
-        context.user_data["b_chat_id"] = update.message.text
+    try:
+        if update.message.forward_from:
+            context.user_data["b_chat_id"] = int(update.message.forward_from.id)
+        else:
+            context.user_data["b_chat_id"] = int(update.message.text)
+    except ValueError:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=m.WRONG_CHAT_ID,
+        )
+
+        return "ADD_RULE_B_CHAT_ID"
 
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -169,10 +187,30 @@ async def add_rule_handler_bottom_signature(update: Update, context: CallbackCon
         f"<i>{bottom_signature}</i>" if bottom_signature != "ПРОПУСТИТЬ" else ""
     )
 
+    message: Message = await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="\.",
+        reply_markup=ReplyKeyboardRemove(),
+    )
+    await context.bot.delete_message(
+        chat_id=update.effective_chat.id,
+        message_id=message.id,
+    )
+
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
+        text="Выберите направление применения подписей",
+        reply_markup=signature_direction_keyboard(),
+    )
+
+    return "ADD_RULE_SIGNATURE_DIRECTION"
+
+
+async def add_rule_signature_direction_handler(update: Update, context: CallbackContext):
+    context.user_data["signature_direction"] = update.callback_query.data.split(":")[1]
+
+    await update.callback_query.edit_message_text(
         text="Отправьте название правила",
-        reply_markup=ReplyKeyboardRemove(),
     )
 
     return "ADD_RULE_NAME"
@@ -197,8 +235,8 @@ async def add_rule_handler_name(update: Update, context: CallbackContext):
         notify_b = True
 
     rule = Rule(
-        a_chat_id=int(context.user_data["a_chat_id"]),
-        b_chat_id=int(context.user_data["b_chat_id"]),
+        a_chat_id=context.user_data["a_chat_id"],
+        b_chat_id=context.user_data["b_chat_id"],
         direction=context.user_data["direction"],
         folder=folder,
         notify_a=notify_a,
@@ -206,6 +244,7 @@ async def add_rule_handler_name(update: Update, context: CallbackContext):
         notify_myself=context.user_data["notify_myself"],
         top_signature=context.user_data["top_signature"],
         bottom_signature=context.user_data["bottom_signature"],
+        signature_direction=context.user_data["signature_direction"],
         name=context.user_data["name"],
     )
 

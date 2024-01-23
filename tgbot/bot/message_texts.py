@@ -46,3 +46,5 @@ Trigger: `{trigger}`
 Замена на: `{replacement}`
 """
 FILTER_CREATED = "Фильтр создан"
+
+WRONG_CHAT_ID = "Неверный chat\_id, попробуйте еще раз"
