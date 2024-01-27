@@ -240,6 +240,13 @@ class Filter(models.Model):
         flags = re.IGNORECASE if ignore_case else 0
         return bool(re.search(self.regex, text, flags=flags))
 
+    def check_valid(self):
+        try:
+            re.compile(self.regex)
+            return True
+        except re.error:
+            return False
+
     def is_match_on_message(self, message, ignore_case=True):
         r = False
         if message.text:
@@ -257,6 +264,11 @@ class Filter(models.Model):
         if message.caption:
             message.caption = self.apply(message.caption)
         return message
+
+    def save(self, *args, **kwargs):
+        if not self.check_valid():
+            raise ValueError("Invalid regex")
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name or self.regex
