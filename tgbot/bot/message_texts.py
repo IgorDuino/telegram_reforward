@@ -5,8 +5,8 @@ RULES_EMPTY = "Правил нет"
 RULES = "Корневые правила и папки:"
 RULE = """
 Имя: {name}
-Пересылка из: `{a_chat_id}`
-Пересылка в: `{b_chat_id}`
+Чат A: `{a_chat_id}`
+Чат B: `{b_chat_id}`
 Направление пересылки: `{direction}`
 Верхняя подпись: `{top_signature}`
 Нижняя подпись: `{bottom_signature}`
