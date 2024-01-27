@@ -181,13 +181,20 @@ async def add_filter_confirm_handler(update: Update, context: CallbackContext):
     action = context.user_data["filter_action"]
     replacement = context.user_data["filter_replacement"]
 
-    await Filter.objects.acreate(
-        rule=rule,
-        name=name,
-        regex=regex,
-        action=action,
-        replacement=replacement,
-    )
+    try:
+        await Filter.objects.acreate(
+            rule=rule,
+            name=name,
+            regex=regex,
+            action=action,
+            replacement=replacement,
+        )
+    except Exception as e:
+        logger.error(e)
+        await update.callback_query.edit_message_text(
+            text=m.ADD_FILTER_ERROR,
+        )
+        return await start_handler(update, context)
 
     await update.callback_query.edit_message_text(
         text=m.FILTER_CREATED,
