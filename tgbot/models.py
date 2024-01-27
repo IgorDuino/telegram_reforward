@@ -241,6 +241,9 @@ class Filter(models.Model):
         return bool(re.search(self.regex, text, flags=flags))
 
     def check_valid(self):
+        if self.replacement is None:
+            self.replacement = ""
+
         try:
             re.compile(self.regex)
             return True
