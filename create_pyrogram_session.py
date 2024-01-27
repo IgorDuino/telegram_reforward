@@ -1,17 +1,25 @@
 import pyrogram
-from decouple import Config, RepositoryEnv
+from decouple import config
+import os
 
-env = Config(RepositoryEnv(".env"))
+TELEGRAM_API_ID = config("TELEGRAM_API_ID")
+TELEGRAM_API_HASH = config("TELEGRAM_API_HASH")
+PHONE_NUMBER = config("PHONE_NUMBER")
 
-TELEGRAM_API_ID = env.get("TELEGRAM_API_ID")
-TELEGRAM_API_HASH = env.get("TELEGRAM_API_HASH")
-PHONE_NUMBER = env.get("PHONE_NUMBER")
+if not os.path.exists("sessions/"):
+    os.mkdir("sessions/")
 
-with pyrogram.Client(
-    "userbot",
-    workdir="sessions",
-    api_id=TELEGRAM_API_ID,
-    api_hash=TELEGRAM_API_HASH,
-    phone_number=PHONE_NUMBER,
-) as app:
-    print("Done")
+
+for name in ("userbot", "notify_userbot"):
+    if os.path.exists(f"sessions/{name}.session"):
+        print(f"Session {name} already exists")
+        continue
+    print(f"Creating {name} session")
+    with pyrogram.Client(
+        name,
+        workdir="sessions",
+        api_id=TELEGRAM_API_ID,
+        api_hash=TELEGRAM_API_HASH,
+        phone_number=PHONE_NUMBER,
+    ) as app:
+        print(f"Session {name} created")

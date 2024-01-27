@@ -13,6 +13,13 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
+async def delete_notification(update: Update, context: CallbackContext):
+    try:
+        await update.callback_query.message.delete()
+    except Exception as e:
+        logger.exception(e)
+
+
 async def toggle_handler(update: Update, context: CallbackContext):
     u = await User.get_user(update, context)
 

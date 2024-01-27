@@ -18,7 +18,7 @@ from reforward.settings import TELEGRAM_TOKEN
 from tgbot.bot.handlers.start import start_handler
 from tgbot.bot.handlers.rules import rules_handler, rule_handler
 from tgbot.bot.handlers.filters import filters_handler, filter_handler
-from tgbot.bot.handlers.general import toggle_handler, delete_handler
+from tgbot.bot.handlers.general import toggle_handler, delete_handler, delete_notification
 from tgbot.bot.handlers.folders import (
     add_folder_handler,
     add_folder_name_handler,
@@ -151,6 +151,8 @@ def setup_application(app):
 
     app.add_handler(CallbackQueryHandler(toggle_handler, pattern="toggle:"))
     app.add_handler(CallbackQueryHandler(delete_handler, pattern="delete:"))
+
+    app.add_handler(CallbackQueryHandler(delete_notification, pattern="delete_notification"))
 
 
 defaults = Defaults(parse_mode=ParseMode.MARKDOWN_V2, tzinfo=pytz.timezone("Europe/Moscow"))
