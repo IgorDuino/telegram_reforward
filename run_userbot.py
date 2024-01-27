@@ -18,11 +18,30 @@ from tgbot.models import User, Filter, FilterActionEnum, Rule, Forwarding
 from pyrogram_utils import copy
 
 import telegram
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 
 from asgiref.sync import sync_to_async
 
 
 bot = telegram.Bot(settings.TELEGRAM_TOKEN)
+
+
+def notification_keyboard(rule) -> InlineKeyboardMarkup:
+    buttons = [
+        [
+            telegram.InlineKeyboardButton(
+                "Удалить сообщение",
+                callback_data="delete_notification",
+            )
+        ],
+        [
+            telegram.InlineKeyboardButton(
+                "Включить пересылку", callback_data=f"toggle:rule:1:{rule.id}"
+            )
+        ],
+    ]
+
+    return InlineKeyboardMarkup(buttons)
 
 
 def signature_formatter(signature: str, message: Message) -> str:
@@ -59,7 +78,7 @@ print(f"Userbot started, my ID: {my_id}")
 
 @app.on_deleted_messages()
 def deleted_messages_handler(client: Client, messages: list[Message]):
-    if not User.objects.get(user_id=my_id).is_forwarding_enabled:
+    if not User.objects.get(user_id=settings.TELEGRAM_ID).is_forwarding_enabled:
         return
 
     for message in messages:
@@ -112,16 +131,16 @@ async def getid_handler(client: Client, message: Message):
     await client.delete_messages(chat_id=message.chat.id, message_ids=message.id)
 
     await client.send_message(
-        chat_id=my_id,
+        chat_id=settings.TELEGRAM_ID,
         text=f"Запрошенный ID {name}: <code>{requested_chat_id}</code>",
         parse_mode=ParseMode.HTML,
     )
-    await client.mark_chat_unread(chat_id=my_id)
+    await client.mark_chat_unread(chat_id=settings.TELEGRAM_ID)
 
 
 @app.on_edited_message()
 async def edited_message_handler(client: Client, message: Message):
-    if not ((await User.objects.aget(user_id=my_id)).is_forwarding_enabled):
+    if not ((await User.objects.aget(user_id=settings.TELEGRAM_ID)).is_forwarding_enabled):
         return
 
     forwardings = Forwarding.objects.filter(
@@ -157,6 +176,7 @@ async def edited_message_handler(client: Client, message: Message):
                     await bot.send_message(
                         chat_id=settings.TELEGRAM_ID,
                         text=f"Пересылка {rule} отключена, так как сработал фильтр {filter}",
+                        reply_markup=notification_keyboard(rule),
                     )
 
                 break
@@ -220,10 +240,10 @@ async def edited_message_handler(client: Client, message: Message):
 
 @app.on_message()
 async def message_handler(client: Client, message: Message):
-    if not (await User.objects.aget(user_id=my_id)).is_forwarding_enabled:
+    if not (await User.objects.aget(user_id=settings.TELEGRAM_ID)).is_forwarding_enabled:
         return
 
-    if message.from_user.id == my_id and message.chat.id > 0:
+    if message.from_user.id == settings.TELEGRAM_ID and message.chat.id > 0:
         return
 
     rules_a = Rule.objects.filter(a_chat_id=message.chat.id, is_active=True).all()
@@ -249,6 +269,7 @@ async def message_handler(client: Client, message: Message):
                     await bot.send_message(
                         chat_id=settings.TELEGRAM_ID,
                         text=f"Пересылка {rule} отключена, так как сработал фильтр {filter}",
+                        reply_markup=notification_keyboard(rule),
                     )
 
                 break
@@ -318,7 +339,7 @@ from pyrogram.raw.types import UpdateEditMessage
 
 @app.on_raw_update()
 def reaction_handler(client: Client, update: UpdateEditMessage, users, chats):
-    if not User.objects.get(user_id=my_id).is_forwarding_enabled:
+    if not User.objects.get(user_id=settings.TELEGRAM_ID).is_forwarding_enabled:
         return
 
     try:

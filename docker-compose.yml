@@ -3,6 +3,7 @@ version: '3.8'
 services:
   db:
     image: postgres
+    restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
@@ -17,6 +18,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    restart: unless-stopped
     command: bash -c "python manage.py migrate && gunicorn --bind :8000 --worker-class uvicorn.workers.UvicornWorker reforward.asgi:application"
     ports:
       - '8000:8000'
@@ -30,6 +32,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    restart: unless-stopped
     command: python run_userbot.py
     volumes:
       - ./sessions:/code/sessions
@@ -38,11 +41,24 @@ services:
     depends_on:
       - web
 
+  notification:
+    image: ghcr.io/igorduino/telegram_reforward:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: python notify_userbot.py
+    volumes:
+      - ./sessions:/code/sessions
+    env_file:
+      - ./.env
+
   celery:
     image: ghcr.io/igorduino/telegram_reforward:latest
     build:
       context: .
       dockerfile: Dockerfile
+    restart: unless-stopped
     command: celery -A reforward worker --loglevel=INFO
     env_file:
       - ./.env
@@ -55,6 +71,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    restart: unless-stopped
     command: celery -A reforward beat -l info --scheduler django_celery_beat.schedulers.DatabaseScheduler
     env_file:
       - ./.env
