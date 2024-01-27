@@ -46,3 +46,4 @@ Trigger: `{trigger}`
 Замена на: `{replacement}`
 """
 FILTER_CREATED = "Фильтр создан"
+ADD_FILTER_ERROR = "Ошибка создания фильтра, возможно проблема в регулярном выражении"
