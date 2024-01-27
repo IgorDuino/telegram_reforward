@@ -9,7 +9,9 @@ from django.db import models
 
 from tgbot.bot import utils
 from reforward import settings
-from pyrogram import Client
+
+import redis
+import json
 
 
 logger = logging.getLogger(__name__)
@@ -190,23 +192,19 @@ class Rule(models.Model):
             chat_ids = [self.b_chat_id]
 
         if chat_ids != []:
-            async with Client(
-                "userbot",
-                workdir="sessions",
-                phone_number=settings.PHONE_NUMBER,
-                api_id=settings.TELEGRAM_API_ID,
-                api_hash=settings.TELEGRAM_API_HASH,
-            ) as client:
-                text = f"Автоматическая пересылка {'отключена' if not is_active else 'включена'}"
-                for chat_id in chat_ids:
-                    try:
-                        await client.send_message(
-                            chat_id=chat_id,
-                            text=text,
-                        )
-                    except Exception as e:
-                        print(e)
-                        logger.error(e)
+            text = (
+                f"**__[Автоматическая пересылка {'отключена' if not is_active else 'включена'}]__**"
+            )
+            for chat_id in chat_ids:
+                redis_client = redis.Redis(
+                    host=settings.REDIS_HOST,
+                    port=settings.REDIS_PORT,
+                    db=settings.REDIS_DB,
+                )
+                redis_client.publish(
+                    "notifications",
+                    json.dumps({"chat_id": chat_id, "text": text}),
+                )
 
     async def enable(self):
         await self.change_active(True)
@@ -259,7 +257,7 @@ class Filter(models.Model):
         if message.caption:
             message.caption = self.apply(message.caption)
         return message
-    
+
     def __str__(self):
         return self.name or self.regex
 
