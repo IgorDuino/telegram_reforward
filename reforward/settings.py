@@ -73,7 +73,10 @@ DATABASES = {
     }
 }
 
-REDIS_URL = config("REDIS_URL")
+REDIS_HOST = config("REDIS_HOST", default="redis")
+REDIS_PORT = config("REDIS_PORT", cast=int, default=6379)
+REDIS_DB = config("REDIS_DB", cast=int, default=0)
+REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
 
 CACHES = {
     "default": {

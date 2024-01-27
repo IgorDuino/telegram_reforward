@@ -41,6 +41,18 @@ services:
     depends_on:
       - web
 
+  notification:
+    image: ghcr.io/igorduino/telegram_reforward:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: python notify_userbot.py
+    volumes:
+      - ./sessions:/code/sessions
+    env_file:
+      - ./.env
+
   celery:
     image: ghcr.io/igorduino/telegram_reforward:latest
     build:
