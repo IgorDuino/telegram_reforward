@@ -18,11 +18,30 @@ from tgbot.models import User, Filter, FilterActionEnum, Rule, Forwarding
 from pyrogram_utils import copy
 
 import telegram
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 
 from asgiref.sync import sync_to_async
 
 
 bot = telegram.Bot(settings.TELEGRAM_TOKEN)
+
+
+def notification_keyboard(rule) -> InlineKeyboardMarkup:
+    buttons = [
+        [
+            telegram.InlineKeyboardButton(
+                "Удалить сообщение",
+                callback_data="delete_notification",
+            )
+        ],
+        [
+            telegram.InlineKeyboardButton(
+                "Включить пересылку", callback_data=f"toggle:rule:1:{rule.id}"
+            )
+        ],
+    ]
+
+    return InlineKeyboardMarkup(buttons)
 
 
 def signature_formatter(signature: str, message: Message) -> str:
@@ -157,6 +176,7 @@ async def edited_message_handler(client: Client, message: Message):
                     await bot.send_message(
                         chat_id=settings.TELEGRAM_ID,
                         text=f"Пересылка {rule} отключена, так как сработал фильтр {filter}",
+                        reply_markup=notification_keyboard(rule),
                     )
 
                 break
@@ -249,6 +269,7 @@ async def message_handler(client: Client, message: Message):
                     await bot.send_message(
                         chat_id=settings.TELEGRAM_ID,
                         text=f"Пересылка {rule} отключена, так как сработал фильтр {filter}",
+                        reply_markup=notification_keyboard(rule),
                     )
 
                 break
