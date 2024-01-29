@@ -246,6 +246,9 @@ async def message_handler(client: Client, message: Message):
     if message.from_user.id == settings.TELEGRAM_ID and message.chat.id > 0:
         return
 
+    if message.text and "#reforwarder" in message.text:
+        return
+
     rules_a = Rule.objects.filter(a_chat_id=message.chat.id, is_active=True).all()
     rules_b = Rule.objects.filter(b_chat_id=message.chat.id, direction="X", is_active=True).all()
     rules = rules_a.union(rules_b)

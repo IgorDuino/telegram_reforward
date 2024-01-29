@@ -193,7 +193,7 @@ class Rule(models.Model):
 
         if chat_ids != []:
             text = (
-                f"**__[Автоматическая пересылка {'отключена' if not is_active else 'включена'}]__**"
+                f"#reforwarder\n**__[Автоматическая пересылка {'отключена' if not is_active else 'включена'}]__**"
             )
             for chat_id in chat_ids:
                 redis_client = redis.Redis(
