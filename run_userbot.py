@@ -22,6 +22,8 @@ from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 
 from asgiref.sync import sync_to_async
 
+from typing import List
+
 
 bot = telegram.Bot(settings.TELEGRAM_TOKEN)
 
@@ -113,6 +115,62 @@ def deleted_messages_handler(client: Client, messages: list[Message]):
                 pass
 
             forwarding.delete()
+
+
+@app.on_message(
+    filters=filters.command(
+        ["on_reforward", "onrf", "off_reforward", "offrf", "check_reforward", "crf"]
+    )
+)
+async def toggle_forwarding_handler(client: Client, message: Message):
+    a = message.text.strip().split()
+    if len(a) == 2:
+        rule_id = a[1]
+        rules = Rule.objects.filter(id=rule_id).all()
+    else:
+        rules = Rule.objects.filter(
+            Q(a_chat_id=message.chat.id) | Q(b_chat_id=message.chat.id)
+        ).all()
+
+    allowed_rules: List = []
+
+    async for rule in rules:
+        if (rule.a_chat_id == message.chat.id and rule.allow_a_chat_members_control) or (
+            rule.b_chat_id == message.chat.id and rule.allow_b_chat_members_control
+        ):
+            allowed_rules.append(rule)
+
+    if len(allowed_rules) == 1:
+        rule = allowed_rules[0]
+        if message.text in ["/on_reforward", "/onrf"]:
+            if rule.is_active:
+                await message.reply_text("#reforwarder\n**__[Пересылка и так включена]__**")
+            else:
+                await message.reply_text("#reforwarder\n**__[Пересылка успешно включена]__**")
+                rule.is_active = True
+                await rule.asave()
+
+        elif message.text in ["/off_reforward", "/offrf"]:
+            if not rule.is_active:
+                await message.reply_text("#reforwarder\n**__[Пересылка и так отключена]__**")
+            else:
+                await message.reply_text("#reforwarder\n**__[Пересылка успешно отключена]__**")
+                rule.is_active = False
+                await rule.asave()
+
+        elif message.text in ["/check_reforward", "/crf"]:
+            if rule.is_active:
+                await message.reply_text("#reforwarder\n**__[Пересылка включена]__**")
+            else:
+                await message.reply_text("#reforwarder\n**__[Пересылка отключена]__**")
+
+    else:
+        ids = "\n".join([f"[{rule.id}] - {rule}" for rule in allowed_rules])
+        await message.reply_text(
+            f"#reforwarder\n**__[Существует несколько правил, подключённых к данному чату, "
+            f"которыми вы можете управлять. Пожалуйста, укажите ID правила, которым вы "
+            f"хотите управлять]__**\n{ids}\n\nНужнно ввести команду, пробел id. Например /onfr 1"
+        )
 
 
 @app.on_message(filters=filters.command("getid") & filters.user(settings.TELEGRAM_ID))
@@ -246,8 +304,18 @@ async def message_handler(client: Client, message: Message):
     if message.from_user.id == settings.TELEGRAM_ID and message.chat.id > 0:
         return
 
-    if message.text and "#reforwarder" in message.text:
-        return
+    skip_phrases = [
+        "#reforwarder",
+        "/on_reforward",
+        "/off_reforward",
+        "/check_reforward",
+        "/onrf",
+        "/offrf",
+        "/crf",
+    ]
+    for skip_phrase in skip_phrases:
+        if message.text and skip_phrase in message.text.lower():
+            return
 
     rules_a = Rule.objects.filter(a_chat_id=message.chat.id, is_active=True).all()
     rules_b = Rule.objects.filter(b_chat_id=message.chat.id, direction="X", is_active=True).all()
