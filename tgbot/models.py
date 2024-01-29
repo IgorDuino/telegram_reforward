@@ -161,6 +161,9 @@ class Rule(models.Model):
     notify_b = models.BooleanField(default=False)
     notify_myself = models.BooleanField(default=True)
 
+    allow_a_chat_members_control = models.BooleanField(default=False)
+    allow_b_chat_members_control = models.BooleanField(default=False)
+
     top_signature = models.CharField(max_length=1000, null=True, blank=True)
     bottom_signature = models.CharField(max_length=1000, null=True, blank=True)
     signature_direction = models.CharField(
@@ -192,9 +195,7 @@ class Rule(models.Model):
             chat_ids = [self.b_chat_id]
 
         if chat_ids != []:
-            text = (
-                f"#reforwarder\n**__[Автоматическая пересылка {'отключена' if not is_active else 'включена'}]__**"
-            )
+            text = f"#reforwarder\n**__[Автоматическая пересылка {'отключена' if not is_active else 'включена'}]__**"
             for chat_id in chat_ids:
                 redis_client = redis.Redis(
                     host=settings.REDIS_HOST,
