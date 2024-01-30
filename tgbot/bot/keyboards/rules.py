@@ -18,11 +18,11 @@ def rules_keyboard(folders: List[Folder], rules: List[Rule], folder=None) -> Inl
             [InlineKeyboardButton(f"📂 {folder_.name}", callback_data=f"folder:{folder_.id}")]
         )
 
-    for rule in rules:
+    for i, rule in enumerate(rules):
         buttons.append(
             [
                 InlineKeyboardButton(
-                    f"{'🟢' if rule.is_active else '🔴'} {rule.name}", callback_data=f"rule:{rule.id}"
+                    f"[{i}] {'🟢' if rule.is_active else '🔴'} {rule.name}", callback_data=f"rule:{rule.id}"
                 )
             ]
         )
