@@ -331,7 +331,7 @@ async def message_handler(client: Client, message: Message):
     ).is_forwarding_enabled:
         return
 
-    if message.from_user.id == settings.TELEGRAM_ID and message.chat.id > 0:
+    if message.from_user.id == settings.TELEGRAM_ID:
         return
 
     skip_phrases = [
