@@ -24,6 +24,8 @@ from asgiref.sync import sync_to_async
 
 from typing import List
 
+import datetime
+
 
 bot = telegram.Bot(settings.TELEGRAM_TOKEN)
 
@@ -48,7 +50,9 @@ def notification_keyboard(rule) -> InlineKeyboardMarkup:
 
 def signature_formatter(signature: str, message: Message) -> str:
     if signature:
-        signature = signature.replace("{first_name}", message.from_user.first_name or "")
+        signature = signature.replace(
+            "{first_name}", message.from_user.first_name or ""
+        )
         signature = signature.replace("{last_name}", message.from_user.last_name or "")
         signature = signature.replace("{username}", message.from_user.username or "")
         signature = signature.replace("{title}", message.chat.title or "")
@@ -84,16 +88,20 @@ def deleted_messages_handler(client: Client, messages: list[Message]):
         return
 
     for message in messages:
-        for forwarding in Forwarding.objects.filter(original_message_id=message.id).all():
+        for forwarding in Forwarding.objects.filter(
+            original_message_id=message.id
+        ).all():
             try:
                 client.delete_messages(
-                    chat_id=forwarding.rule.a_chat_id, message_ids=forwarding.new_message_id
+                    chat_id=forwarding.rule.a_chat_id,
+                    message_ids=forwarding.new_message_id,
                 )
             except Exception as e:
                 pass
             try:
                 client.delete_messages(
-                    chat_id=forwarding.rule.b_chat_id, message_ids=forwarding.new_message_id
+                    chat_id=forwarding.rule.b_chat_id,
+                    message_ids=forwarding.new_message_id,
                 )
             except Exception as e:
                 pass
@@ -103,13 +111,15 @@ def deleted_messages_handler(client: Client, messages: list[Message]):
         for forwarding in Forwarding.objects.filter(new_message_id=message.id).all():
             try:
                 client.delete_messages(
-                    chat_id=forwarding.rule.a_chat_id, message_ids=forwarding.original_message_id
+                    chat_id=forwarding.rule.a_chat_id,
+                    message_ids=forwarding.original_message_id,
                 )
             except Exception as e:
                 pass
             try:
                 client.delete_messages(
-                    chat_id=forwarding.rule.b_chat_id, message_ids=forwarding.original_message_id
+                    chat_id=forwarding.rule.b_chat_id,
+                    message_ids=forwarding.original_message_id,
                 )
             except Exception as e:
                 pass
@@ -135,26 +145,34 @@ async def toggle_forwarding_handler(client: Client, message: Message):
     allowed_rules: List = []
 
     async for rule in rules:
-        if (rule.a_chat_id == message.chat.id and rule.allow_a_chat_members_control) or (
-            rule.b_chat_id == message.chat.id and rule.allow_b_chat_members_control
-        ):
+        if (
+            rule.a_chat_id == message.chat.id and rule.allow_a_chat_members_control
+        ) or (rule.b_chat_id == message.chat.id and rule.allow_b_chat_members_control):
             allowed_rules.append(rule)
 
     if len(allowed_rules) == 1:
         rule = allowed_rules[0]
         if message.text in ["/on_reforward", "/onrf"]:
             if rule.is_active:
-                await message.reply_text("#reforwarder\n**__[Пересылка и так включена]__**")
+                await message.reply_text(
+                    "#reforwarder\n**__[Пересылка и так включена]__**"
+                )
             else:
-                await message.reply_text("#reforwarder\n**__[Пересылка успешно включена]__**")
+                await message.reply_text(
+                    "#reforwarder\n**__[Пересылка успешно включена]__**"
+                )
                 rule.is_active = True
                 await rule.asave()
 
         elif message.text in ["/off_reforward", "/offrf"]:
             if not rule.is_active:
-                await message.reply_text("#reforwarder\n**__[Пересылка и так отключена]__**")
+                await message.reply_text(
+                    "#reforwarder\n**__[Пересылка и так отключена]__**"
+                )
             else:
-                await message.reply_text("#reforwarder\n**__[Пересылка успешно отключена]__**")
+                await message.reply_text(
+                    "#reforwarder\n**__[Пересылка успешно отключена]__**"
+                )
                 rule.is_active = False
                 await rule.asave()
 
@@ -198,7 +216,9 @@ async def getid_handler(client: Client, message: Message):
 
 @app.on_edited_message()
 async def edited_message_handler(client: Client, message: Message):
-    if not ((await User.objects.aget(user_id=settings.TELEGRAM_ID)).is_forwarding_enabled):
+    if not (
+        (await User.objects.aget(user_id=settings.TELEGRAM_ID)).is_forwarding_enabled
+    ):
         return
 
     forwardings = Forwarding.objects.filter(
@@ -207,7 +227,9 @@ async def edited_message_handler(client: Client, message: Message):
 
     async for forwarding in forwardings:
         rule = await sync_to_async(getattr)(forwarding, "rule")
-        to_edit_chat_id = rule.a_chat_id if rule.b_chat_id == message.chat.id else rule.b_chat_id
+        to_edit_chat_id = (
+            rule.a_chat_id if rule.b_chat_id == message.chat.id else rule.b_chat_id
+        )
         to_edit_message_id = (
             forwarding.new_message_id
             if message.id == forwarding.original_message_id
@@ -256,8 +278,14 @@ async def edited_message_handler(client: Client, message: Message):
 
         if (
             rule.signature_direction == "X"
-            or (forwarding.original_message_id == message.id and rule.signature_direction == "AB")
-            or (forwarding.new_message_id == message.id and rule.signature_direction == "BA")
+            or (
+                forwarding.original_message_id == message.id
+                and rule.signature_direction == "AB"
+            )
+            or (
+                forwarding.new_message_id == message.id
+                and rule.signature_direction == "BA"
+            )
         ):
             if message.text:
                 if top_sign:
@@ -298,7 +326,9 @@ async def edited_message_handler(client: Client, message: Message):
 
 @app.on_message()
 async def message_handler(client: Client, message: Message):
-    if not (await User.objects.aget(user_id=settings.TELEGRAM_ID)).is_forwarding_enabled:
+    if not (
+        await User.objects.aget(user_id=settings.TELEGRAM_ID)
+    ).is_forwarding_enabled:
         return
 
     if message.from_user.id == settings.TELEGRAM_ID and message.chat.id > 0:
@@ -318,7 +348,9 @@ async def message_handler(client: Client, message: Message):
             return
 
     rules_a = Rule.objects.filter(a_chat_id=message.chat.id, is_active=True).all()
-    rules_b = Rule.objects.filter(b_chat_id=message.chat.id, direction="X", is_active=True).all()
+    rules_b = Rule.objects.filter(
+        b_chat_id=message.chat.id, direction="X", is_active=True
+    ).all()
     rules = rules_a.union(rules_b)
 
     async for rule in rules:
@@ -370,21 +402,90 @@ async def message_handler(client: Client, message: Message):
                 if bottom_sign:
                     message.caption = f"{message.caption}\n{bottom_sign}"
 
-        chat_id = rule.b_chat_id if rule.a_chat_id == message.chat.id else rule.a_chat_id
+        chat_id = (
+            rule.b_chat_id if rule.a_chat_id == message.chat.id else rule.a_chat_id
+        )
 
         reply_to_message_id = None
         if message.reply_to_message_id:
-            forwarding_a = await Forwarding.objects.filter(
-                original_message_id=message.reply_to_message_id, rule=rule
-            ).afirst()
-            if forwarding_a:
+            if await sync_to_async(
+                Forwarding.objects.filter(
+                    original_message_id=message.reply_to_message_id, rule=rule
+                ).exists
+            )():
+                forwarding_a = await Forwarding.objects.filter(
+                    original_message_id=message.reply_to_message_id, rule=rule
+                ).afirst()
                 reply_to_message_id = forwarding_a.new_message_id
-            else:
+
+            elif await sync_to_async(
+                Forwarding.objects.filter(
+                    new_message_id=message.reply_to_message_id, rule=rule
+                ).exists
+            )():
                 forwarding_b = await Forwarding.objects.filter(
                     new_message_id=message.reply_to_message_id, rule=rule
                 ).afirst()
-                if forwarding_b:
-                    reply_to_message_id = forwarding_b.original_message_id
+                reply_to_message_id = forwarding_b.original_message_id
+
+            else:
+                # message wasnt forwarded by userbot, copy it
+
+                reply_to_message = message.reply_to_message
+
+                skip = False
+
+                for skip_phrase in skip_phrases:
+                    if (
+                        reply_to_message.text
+                        and skip_phrase in reply_to_message.text.lower()
+                    ):
+                        skip = True
+                        break
+
+                filters = Filter.objects.filter(Q(rule=None) | Q(rule=rule)).all()
+
+                async for filter in filters:
+                    if not filter.is_match_on_message(reply_to_message):
+                        continue
+
+                    if filter.action in [
+                        FilterActionEnum.SKIP,
+                        FilterActionEnum.DISABLE_RULE,
+                    ]:
+                        skip = True
+                        break
+
+                    elif filter.action == FilterActionEnum.REPLACE:
+                        reply_to_message = filter.apply_on_message(reply_to_message)
+
+                if skip:
+                    continue
+
+                datetime_str = reply_to_message.date.strftime("%Y-%m-%d %H:%M:%S")
+
+                if reply_to_message.text:
+                    reply_to_message.text = (
+                        f"**__[In reply from {datetime_str}]__**\n"
+                        + reply_to_message.text
+                    )
+                elif reply_to_message.caption:
+                    reply_to_message.caption = (
+                        f"**__[In reply from {datetime_str}]__**\n"
+                        + reply_to_message.caption
+                    )
+                else:
+                    await client.send_message(
+                        chat_id=chat_id,
+                        text=f"**__[In reply from {datetime_str}]__**",
+                    )
+
+                reply_to_message = await copy(
+                    message=reply_to_message,
+                    chat_id=chat_id,
+                )
+
+                reply_to_message_id = reply_to_message.id
 
         new_message = await copy(
             message=message,
