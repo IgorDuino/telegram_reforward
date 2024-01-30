@@ -10,8 +10,9 @@ django.setup()
 from reforward import settings
 from django.db.models import Q
 
+import pyrogram.errors
 from pyrogram import Client, filters, idle
-from pyrogram.types import Message
+from pyrogram.types import Message, Reaction
 from pyrogram.enums import ParseMode
 import logging
 from tgbot.models import User, Filter, FilterActionEnum, Rule, Forwarding
@@ -225,7 +226,7 @@ async def edited_message_handler(client: Client, message: Message):
         (await User.objects.aget(user_id=settings.TELEGRAM_ID)).is_forwarding_enabled
     ):
         return
-    
+
     if message.from_user.id == settings.TELEGRAM_ID:
         return
 
@@ -301,29 +302,50 @@ async def edited_message_handler(client: Client, message: Message):
                 if bottom_sign:
                     message.caption = f"{message.caption}\n{bottom_sign}"
 
-        if message.text:
-            await client.edit_message_text(
-                chat_id=to_edit_chat_id,
-                message_id=to_edit_message_id,
-                text=message.text,
-                reply_markup=message.reply_markup,
-            )
+        try:
+            if len(message.reactions.reactions) == 0:
+                # remove reaction
+                await client.send_reaction(
+                    chat_id=to_edit_chat_id, message_id=to_edit_message_id
+                )
+            else:
+                # set last reaction
+                await client.send_reaction(
+                    chat_id=to_edit_chat_id,
+                    message_id=to_edit_message_id,
+                    emoji=message.reactions.reactions[-1].emoji,
+                )
 
-        elif message.caption:
-            await client.edit_message_caption(
-                chat_id=to_edit_chat_id,
-                message_id=to_edit_message_id,
-                caption=message.caption,
-                reply_markup=message.reply_markup,
-            )
+        except Exception as e:
+            pass
 
-        elif message.photo:
-            await client.edit_message_media(
-                chat_id=to_edit_chat_id,
-                message_id=to_edit_message_id,
-                media=message.photo.file_id,
-                reply_markup=message.reply_markup,
-            )
+        try:
+            if message.text:
+                await client.edit_message_text(
+                    chat_id=to_edit_chat_id,
+                    message_id=to_edit_message_id,
+                    text=message.text,
+                    reply_markup=message.reply_markup,
+                )
+
+            elif message.caption:
+                await client.edit_message_caption(
+                    chat_id=to_edit_chat_id,
+                    message_id=to_edit_message_id,
+                    caption=message.caption,
+                    reply_markup=message.reply_markup,
+                )
+
+            elif message.photo:
+                await client.edit_message_media(
+                    chat_id=to_edit_chat_id,
+                    message_id=to_edit_message_id,
+                    media=message.photo.file_id,
+                    reply_markup=message.reply_markup,
+                )
+
+        except pyrogram.errors.exceptions.bad_request_400.MessageNotModified:
+            pass
 
 
 @app.on_message()
@@ -506,47 +528,6 @@ async def message_handler(client: Client, message: Message):
 
         else:
             logger.warning(f"Failed to forward message {message.id} to {chat_id}")
-
-
-from pyrogram.raw.types import UpdateEditMessage
-
-
-@app.on_raw_update()
-def reaction_handler(client: Client, update: UpdateEditMessage, users, chats):
-    if not User.objects.get(user_id=settings.TELEGRAM_ID).is_forwarding_enabled:
-        return
-
-    try:
-        recent_reactions = update.message.reactions.recent_reactions
-        message: Message = update.message
-    except Exception as e:
-        return
-
-    for forwarding in Forwarding.objects.filter(original_message_id=message.id).all():
-        try:
-            for reaction in recent_reactions:
-                client.send_reaction(
-                    chat_id=forwarding.rule.a_chat_id
-                    if forwarding.rule.direction == "O"
-                    else forwarding.rule.b_chat_id,
-                    message_id=forwarding.new_message_id,
-                    emoji=reaction.reaction.emoticon,
-                )
-        except Exception as e:
-            pass
-
-    for forwarding in Forwarding.objects.filter(new_message_id=message.id).all():
-        try:
-            for reaction in recent_reactions:
-                client.send_reaction(
-                    chat_id=forwarding.rule.a_chat_id
-                    if forwarding.rule.direction == "O"
-                    else forwarding.rule.b_chat_id,
-                    message_id=forwarding.original_message_id,
-                    emoji=reaction.reaction.emoticon,
-                )
-        except Exception as e:
-            pass
 
 
 idle()
