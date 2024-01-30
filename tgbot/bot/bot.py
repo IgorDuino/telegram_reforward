@@ -40,6 +40,7 @@ from tgbot.bot.handlers.add_rule import (
     add_rule_handler_top_signature,
     add_rule_handler_bottom_signature,
     add_rule_signature_direction_handler,
+    add_rule_chat_members_control,
     add_rule_handler_name,
 )
 from tgbot.bot.handlers.filters import (
@@ -151,6 +152,12 @@ def setup_application(app):
             "ADD_RULE_SIGNATURE_DIRECTION": [
                 CallbackQueryHandler(
                     add_rule_signature_direction_handler, pattern="signature_direction:"
+                ),
+            ],
+            "ADD_RULE_CHAT_MEMBERS_CONTROL": [
+                CallbackQueryHandler(
+                    add_rule_chat_members_control,
+                    pattern="chat_members_control:",
                 ),
             ],
             "ADD_RULE_NAME": [

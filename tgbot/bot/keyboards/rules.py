@@ -120,10 +120,10 @@ def yes_no_keyboard() -> InlineKeyboardMarkup:
 
 def who_notify_keyboard() -> InlineKeyboardMarkup:
     buttons = [
-        InlineKeyboardButton("Уведомлять первого", callback_data="notify:a"),
-        InlineKeyboardButton("Уведомлять второго", callback_data="notify:b"),
-        InlineKeyboardButton("Уведомлять обоих", callback_data="notify:both"),
-        InlineKeyboardButton("Никого не уведомлять", callback_data="notify:nobody"),
+        InlineKeyboardButton("Уведомлять чат A", callback_data="notify:a"),
+        InlineKeyboardButton("Уведомлять чат B", callback_data="notify:b"),
+        InlineKeyboardButton("Уведомлять A и B", callback_data="notify:ab"),
+        InlineKeyboardButton("Никого не уведомлять", callback_data="notify:_"),
     ]
 
     return InlineKeyboardMarkup.from_column(buttons)
@@ -151,6 +151,23 @@ def signature_direction_keyboard() -> InlineKeyboardMarkup:
         InlineKeyboardButton("A -> B", callback_data="signature_direction:AB"),
         InlineKeyboardButton("B -> A", callback_data="signature_direction:BA"),
         InlineKeyboardButton("A <-> B", callback_data="signature_direction:X"),
+    ]
+
+    return InlineKeyboardMarkup.from_column(buttons)
+
+
+def chat_members_control_keyboard() -> InlineKeyboardMarkup:
+    buttons = [
+        InlineKeyboardButton(
+            "Участники чата A", callback_data="chat_members_control:a"
+        ),
+        InlineKeyboardButton(
+            "Участники чата A", callback_data="chat_members_control:b"
+        ),
+        InlineKeyboardButton(
+            "Участники обоих чатов", callback_data="chat_members_control:ab"
+        ),
+        InlineKeyboardButton("Только я", callback_data="chat_members_control:_"),
     ]
 
     return InlineKeyboardMarkup.from_column(buttons)

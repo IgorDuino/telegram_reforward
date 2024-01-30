@@ -15,6 +15,7 @@ from tgbot.bot.keyboards.rules import (
     skip_keyboard,
     notify_myself_keyboard,
     signature_direction_keyboard,
+    chat_members_control_keyboard,
 )
 from tgbot.bot.keyboards.folders import chose_folder_keyboard
 
@@ -150,7 +151,8 @@ async def add_rule_notify_myself_handler(update: Update, context: CallbackContex
 async def add_rule_handler_who_notify(update: Update, context: CallbackContext):
     who_notify = update.callback_query.data.split(":")[1]
 
-    context.user_data["who_notify"] = who_notify
+    context.user_data["notify_a"] = "a" in who_notify
+    context.user_data["notify_b"] = "b" in who_notify
 
     await update.callback_query.edit_message_text(
         text="Отправьте подпись сверху или нажмите ПРОПУСТИТЬ",
@@ -188,10 +190,11 @@ async def add_rule_handler_bottom_signature(update: Update, context: CallbackCon
 
         if context.user_data["top_signature"] == "":
             await update.callback_query.edit_message_text(
-                text="Отправьте название правила",
+                text="Кто сможет использовать команды для управления пересылкой в чатах?",
+                reply_markup=chat_members_control_keyboard(),
             )
 
-            return "ADD_RULE_NAME"
+            return "ADD_RULE_CHAT_MEMBERS_CONTROL"
 
         await update.callback_query.edit_message_text(
             text="Выберите направление применения подписей",
@@ -217,6 +220,19 @@ async def add_rule_signature_direction_handler(
     context.user_data["signature_direction"] = update.callback_query.data.split(":")[1]
 
     await update.callback_query.edit_message_text(
+        text="Кто сможет использовать команды для управления пересылкой в чатах?",
+        reply_markup=chat_members_control_keyboard(),
+    )
+
+    return "ADD_RULE_CHAT_MEMBERS_CONTROL"
+
+
+async def add_rule_chat_members_control(update: Update, context: CallbackContext):
+    chat_members_control = update.callback_query.data.split(":")[1]
+    context.user_data["allow_a_chat_members_control"] = "a" in chat_members_control
+    context.user_data["allow_b_chat_members_control"] = "b" in chat_members_control
+
+    await update.callback_query.edit_message_text(
         text="Отправьте название правила",
     )
 
@@ -232,26 +248,19 @@ async def add_rule_handler_name(update: Update, context: CallbackContext):
     if context.user_data["folder_id"]:
         folder = await Folder.objects.aget(id=context.user_data["folder_id"])
 
-    notify_a, notify_b = False, False
-    if context.user_data["who_notify"] == "a":
-        notify_a = True
-    elif context.user_data["who_notify"] == "b":
-        notify_b = True
-    elif context.user_data["who_notify"] == "both":
-        notify_a = True
-        notify_b = True
-
     rule = Rule(
         a_chat_id=context.user_data["a_chat_id"],
         b_chat_id=context.user_data["b_chat_id"],
         direction=context.user_data["direction"],
         folder=folder,
-        notify_a=notify_a,
-        notify_b=notify_b,
+        notify_a=context.user_data["notify_a"],
+        notify_b=context.user_data["notify_b"],
         notify_myself=context.user_data["notify_myself"],
         top_signature=context.user_data["top_signature"],
         bottom_signature=context.user_data["bottom_signature"],
         signature_direction=context.user_data.get("signature_direction", None),
+        allow_a_chat_members_control=context.user_data["allow_a_chat_members_control"],
+        allow_b_chat_members_control=context.user_data["allow_b_chat_members_control"],
         name=context.user_data["name"],
     )
 
