@@ -182,12 +182,17 @@ async def toggle_forwarding_handler(client: Client, message: Message):
             else:
                 await message.reply_text("#reforwarder\n**__[Пересылка отключена]__**")
 
-    else:
+    elif len(allowed_rules) > 1:
         ids = "\n".join([f"[{rule.id}] - {rule}" for rule in allowed_rules])
         await message.reply_text(
             f"#reforwarder\n**__[Существует несколько правил, подключённых к данному чату, "
             f"которыми вы можете управлять. Пожалуйста, укажите ID правила, которым вы "
             f"хотите управлять]__**\n{ids}\n\nНужнно ввести команду, пробел id. Например /onfr 1"
+        )
+
+    else:
+        await message.reply_text(
+            "#reforwarder\n**__[У вас нет прав для управления пересылкой в этом чате]__**"
         )
 
 
