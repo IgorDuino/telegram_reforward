@@ -274,7 +274,7 @@ class Filter(models.Model):
         return r
 
     def apply(self, text):
-        return re.sub(self.regex, self.replacement, text)
+        return re.sub(self.regex, self.replacement, text, flags=re.I)
 
     def apply_on_message(self, message):
         if message.text:
