@@ -18,7 +18,11 @@ from reforward.settings import TELEGRAM_TOKEN
 from tgbot.bot.handlers.start import start_handler
 from tgbot.bot.handlers.rules import rules_handler, rule_handler
 from tgbot.bot.handlers.filters import filters_handler, filter_handler
-from tgbot.bot.handlers.general import toggle_handler, delete_handler, delete_notification
+from tgbot.bot.handlers.general import (
+    toggle_handler,
+    delete_handler,
+    delete_notification,
+)
 from tgbot.bot.handlers.folders import (
     add_folder_handler,
     add_folder_name_handler,
@@ -51,7 +55,9 @@ from warnings import filterwarnings
 from telegram.warnings import PTBUserWarning
 
 
-filterwarnings(action="ignore", message=r".*CallbackQueryHandler", category=PTBUserWarning)
+filterwarnings(
+    action="ignore", message=r".*CallbackQueryHandler", category=PTBUserWarning
+)
 
 
 def setup_application(app):
@@ -67,16 +73,23 @@ def setup_application(app):
             ],
             "ADD_FILTER_TRIGGER": [
                 MessageHandler(filters.TEXT, add_filter_trigger_handler),
-                CallbackQueryHandler(add_filter_trigger_handler, pattern="add_filter_trigger:"),
+                CallbackQueryHandler(
+                    add_filter_trigger_handler, pattern="add_filter_trigger:"
+                ),
             ],
             "ADD_FILTER_ACTION": [
-                CallbackQueryHandler(add_filter_action_handler, pattern="add_filter_action:"),
+                CallbackQueryHandler(
+                    add_filter_action_handler, pattern="add_filter_action:"
+                ),
             ],
             "ADD_FILTER_REPLACEMENT": [
                 MessageHandler(filters.TEXT, add_filter_replacement_handler),
+                CallbackQueryHandler(add_filter_replacement_handler, pattern="delete"),
             ],
             "ADD_FILTER_CONFIRM": [
-                CallbackQueryHandler(add_filter_confirm_handler, pattern="add_filter_confirm"),
+                CallbackQueryHandler(
+                    add_filter_confirm_handler, pattern="add_filter_confirm"
+                ),
             ],
         },
         fallbacks=[CallbackQueryHandler(start_handler, pattern="cancel")],
@@ -109,7 +122,9 @@ def setup_application(app):
                 MessageHandler(filters.TEXT, add_rule_handler_b_chat_id),
             ],
             "ADD_RULE_DIRECTION": [
-                CallbackQueryHandler(add_rule_handler_direction, pattern="one_way|two_way"),
+                CallbackQueryHandler(
+                    add_rule_handler_direction, pattern="one_way|two_way"
+                ),
             ],
             "ADD_RULE_FOLDER_OR_NOT": [
                 CallbackQueryHandler(add_rule_handler_folder_or_not, pattern="yes|no"),
@@ -118,16 +133,20 @@ def setup_application(app):
                 CallbackQueryHandler(add_rule_folder_handler, pattern="folder:"),
             ],
             "ADD_RULE_NOTIFY_MYSELF": [
-                CallbackQueryHandler(add_rule_notify_myself_handler, pattern="notify_myself:"),
+                CallbackQueryHandler(
+                    add_rule_notify_myself_handler, pattern="notify_myself:"
+                ),
             ],
             "ADD_RULE_WHO_NOTIFY": [
                 CallbackQueryHandler(add_rule_handler_who_notify, pattern="notify:"),
             ],
             "ADD_RULE_TOP_SIGNATURE": [
                 MessageHandler(filters.TEXT, add_rule_handler_top_signature),
+                CallbackQueryHandler(add_rule_handler_top_signature, pattern="skip"),
             ],
             "ADD_RULE_BOTTOM_SIGNATURE": [
                 MessageHandler(filters.TEXT, add_rule_handler_bottom_signature),
+                CallbackQueryHandler(add_rule_handler_bottom_signature, pattern="skip"),
             ],
             "ADD_RULE_SIGNATURE_DIRECTION": [
                 CallbackQueryHandler(
@@ -152,10 +171,14 @@ def setup_application(app):
     app.add_handler(CallbackQueryHandler(toggle_handler, pattern="toggle:"))
     app.add_handler(CallbackQueryHandler(delete_handler, pattern="delete:"))
 
-    app.add_handler(CallbackQueryHandler(delete_notification, pattern="delete_notification"))
+    app.add_handler(
+        CallbackQueryHandler(delete_notification, pattern="delete_notification")
+    )
 
 
-defaults = Defaults(parse_mode=ParseMode.MARKDOWN_V2, tzinfo=pytz.timezone("Europe/Moscow"))
+defaults = Defaults(
+    parse_mode=ParseMode.MARKDOWN_V2, tzinfo=pytz.timezone("Europe/Moscow")
+)
 
 
 application = Application.builder().token(TELEGRAM_TOKEN).defaults(defaults).build()

@@ -170,6 +170,8 @@ class Rule(models.Model):
         max_length=2,
         choices=[("AB", "A -> B"), ("BA", "B -> A"), ("X", "A <-> B")],
         default="AB",
+        null=True,
+        blank=True,
     )
 
     created_at = models.DateTimeField(auto_now_add=True)

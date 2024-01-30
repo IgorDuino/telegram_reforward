@@ -44,7 +44,9 @@ async def filters_handler(update: Update, context: CallbackContext):
 async def filter_handler(update: Update, context: CallbackContext):
     u = await User.get_user(update, context)
 
-    filter_ = await Filter.objects.aget(id=int(update.callback_query.data.split(":")[1]))
+    filter_ = await Filter.objects.aget(
+        id=int(update.callback_query.data.split(":")[1])
+    )
 
     await update.callback_query.edit_message_text(
         text=m.FILTER.format(
@@ -155,21 +157,28 @@ async def add_filter_action_handler(update: Update, context: CallbackContext):
 async def add_filter_replacement_handler(update: Update, context: CallbackContext):
     u = await User.get_user(update, context)
 
-    replacement = update.message.text
-    if replacement == "УДАЛИТЬ":
-        replacement = ""
+    if update.callback_query:
+        context.user_data["filter_replacement"] = ""
+    else:
+        context.user_data["filter_replacement"] = update.message.text
 
-    context.user_data["filter_replacement"] = replacement
-
-    await update.message.reply_text(
-        text=m.ADD_FILTER_CONFIRM.format(
-            name=context.user_data["filter_name"],
-            trigger=context.user_data["filter_trigger"],
-            action=FilterActionEnum(context.user_data["filter_action"]).label,
-            replacement=context.user_data["filter_replacement"],
-        ),
-        reply_markup=add_filter_confirm_keyboard(),
+    text = m.ADD_FILTER_CONFIRM.format(
+        name=context.user_data["filter_name"],
+        trigger=context.user_data["filter_trigger"],
+        action=FilterActionEnum(context.user_data["filter_action"]).label,
+        replacement=context.user_data["filter_replacement"],
     )
+
+    if update.callback_query:
+        await update.callback_query.edit_message_text(
+            text=text,
+            reply_markup=add_filter_confirm_keyboard(),
+        )
+    else:
+        await update.message.reply_text(
+            text=text,
+            reply_markup=add_filter_confirm_keyboard(),
+        )
 
     return "ADD_FILTER_CONFIRM"
 
