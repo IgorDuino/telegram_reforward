@@ -147,8 +147,10 @@ async def toggle_forwarding_handler(client: Client, message: Message):
 
     async for rule in rules:
         if (
-            rule.a_chat_id == message.chat.id and rule.allow_a_chat_members_control
-        ) or (rule.b_chat_id == message.chat.id and rule.allow_b_chat_members_control):
+            (rule.a_chat_id == message.chat.id and rule.allow_a_chat_members_control)
+            or (rule.b_chat_id == message.chat.id and rule.allow_b_chat_members_control)
+            or message.from_user.id == settings.TELEGRAM_ID
+        ):
             allowed_rules.append(rule)
 
     if len(allowed_rules) == 1:
@@ -193,7 +195,8 @@ async def toggle_forwarding_handler(client: Client, message: Message):
 
     else:
         await message.reply_text(
-            "#reforwarder\n**__[У вас нет прав для управления пересылкой в этом чате]__**"
+            "#reforwarder\n**__[У вас нет прав для управления пересылкой в этом чате "
+            "или на этот чат не настроены пересылки]__**"
         )
 
 
