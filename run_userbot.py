@@ -225,13 +225,16 @@ async def edited_message_handler(client: Client, message: Message):
         (await User.objects.aget(user_id=settings.TELEGRAM_ID)).is_forwarding_enabled
     ):
         return
+    
+    if message.from_user.id == settings.TELEGRAM_ID:
+        return
 
     forwardings = Forwarding.objects.filter(
         Q(original_message_id=message.id) | Q(new_message_id=message.id)
     ).all()
 
     async for forwarding in forwardings:
-        rule = await sync_to_async(getattr)(forwarding, "rule")
+        rule: Rule = await sync_to_async(getattr)(forwarding, "rule")
         to_edit_chat_id = (
             rule.a_chat_id if rule.b_chat_id == message.chat.id else rule.b_chat_id
         )
@@ -282,15 +285,9 @@ async def edited_message_handler(client: Client, message: Message):
         bottom_sign = signature_formatter(rule.bottom_signature, message)
 
         if (
-            rule.signature_direction == "X"
-            or (
-                forwarding.original_message_id == message.id
-                and rule.signature_direction == "AB"
-            )
-            or (
-                forwarding.new_message_id == message.id
-                and rule.signature_direction == "BA"
-            )
+            (rule.signature_direction == "X")
+            or (rule.signature_direction == "AB" and rule.a_chat_id == message.chat.id)
+            or (rule.signature_direction == "BA" and rule.b_chat_id == message.chat.id)
         ):
             if message.text:
                 if top_sign:
