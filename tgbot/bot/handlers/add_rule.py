@@ -135,7 +135,9 @@ async def add_rule_folder_handler(update: Update, context: CallbackContext):
 
 
 async def add_rule_notify_myself_handler(update: Update, context: CallbackContext):
-    context.user_data["notify_myself"] = bool(int(update.callback_query.data.split(":")[1]))
+    context.user_data["notify_myself"] = bool(
+        int(update.callback_query.data.split(":")[1])
+    )
 
     await update.callback_query.edit_message_text(
         text="Кого нужно оповещать когда пересылка включается или выключается?",
@@ -150,13 +152,7 @@ async def add_rule_handler_who_notify(update: Update, context: CallbackContext):
 
     context.user_data["who_notify"] = who_notify
 
-    await context.bot.delete_message(
-        chat_id=update.effective_chat.id,
-        message_id=update.callback_query.message.message_id,
-    )
-
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
+    await update.callback_query.edit_message_text(
         text="Отправьте подпись сверху или нажмите ПРОПУСТИТЬ",
         reply_markup=skip_keyboard(),
     )
@@ -165,11 +161,17 @@ async def add_rule_handler_who_notify(update: Update, context: CallbackContext):
 
 
 async def add_rule_handler_top_signature(update: Update, context: CallbackContext):
-    top_signature = update.message.text
+    if update.callback_query:
+        context.user_data["top_signature"] = ""
 
-    context.user_data["top_signature"] = (
-        f"<i>{top_signature}</i>" if top_signature != "ПРОПУСТИТЬ" else ""
-    )
+        await update.callback_query.edit_message_text(
+            text="Отправьте подпись снизу или нажмите ПРОПУСТИТЬ",
+            reply_markup=skip_keyboard(),
+        )
+
+        return "ADD_RULE_BOTTOM_SIGNATURE"
+
+    context.user_data["top_signature"] = f"<i>{update.message.text}</i>"
 
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -181,21 +183,24 @@ async def add_rule_handler_top_signature(update: Update, context: CallbackContex
 
 
 async def add_rule_handler_bottom_signature(update: Update, context: CallbackContext):
-    bottom_signature = update.message.text
+    if update.callback_query:
+        context.user_data["bottom_signature"] = ""
 
-    context.user_data["bottom_signature"] = (
-        f"<i>{bottom_signature}</i>" if bottom_signature != "ПРОПУСТИТЬ" else ""
-    )
+        if context.user_data["top_signature"] == "":
+            await update.callback_query.edit_message_text(
+                text="Отправьте название правила",
+            )
 
-    message: Message = await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text="\.",
-        reply_markup=ReplyKeyboardRemove(),
-    )
-    await context.bot.delete_message(
-        chat_id=update.effective_chat.id,
-        message_id=message.id,
-    )
+            return "ADD_RULE_NAME"
+
+        await update.callback_query.edit_message_text(
+            text="Выберите направление применения подписей",
+            reply_markup=signature_direction_keyboard(),
+        )
+
+        return "ADD_RULE_SIGNATURE_DIRECTION"
+
+    context.user_data["bottom_signature"] = update.message.text
 
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -206,7 +211,9 @@ async def add_rule_handler_bottom_signature(update: Update, context: CallbackCon
     return "ADD_RULE_SIGNATURE_DIRECTION"
 
 
-async def add_rule_signature_direction_handler(update: Update, context: CallbackContext):
+async def add_rule_signature_direction_handler(
+    update: Update, context: CallbackContext
+):
     context.user_data["signature_direction"] = update.callback_query.data.split(":")[1]
 
     await update.callback_query.edit_message_text(
@@ -244,7 +251,7 @@ async def add_rule_handler_name(update: Update, context: CallbackContext):
         notify_myself=context.user_data["notify_myself"],
         top_signature=context.user_data["top_signature"],
         bottom_signature=context.user_data["bottom_signature"],
-        signature_direction=context.user_data["signature_direction"],
+        signature_direction=context.user_data.get("signature_direction", None),
         name=context.user_data["name"],
     )
 

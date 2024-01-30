@@ -10,19 +10,26 @@ from typing import List
 from tgbot.models import Folder, Rule
 
 
-def rules_keyboard(folders: List[Folder], rules: List[Rule], folder=None) -> InlineKeyboardMarkup:
+def rules_keyboard(
+    folders: List[Folder], rules: List[Rule], folder=None
+) -> InlineKeyboardMarkup:
     buttons = []
 
     for folder_ in folders:
         buttons.append(
-            [InlineKeyboardButton(f"📂 {folder_.name}", callback_data=f"folder:{folder_.id}")]
+            [
+                InlineKeyboardButton(
+                    f"📂 {folder_.name}", callback_data=f"folder:{folder_.id}"
+                )
+            ]
         )
 
     for i, rule in enumerate(rules):
         buttons.append(
             [
                 InlineKeyboardButton(
-                    f"[{i}] {'🟢' if rule.is_active else '🔴'} {rule.name}", callback_data=f"rule:{rule.id}"
+                    f"[{i}] {'🟢' if rule.is_active else '🔴'} {rule.name}",
+                    callback_data=f"rule:{rule.id}",
                 )
             ]
         )
@@ -33,7 +40,9 @@ def rules_keyboard(folders: List[Folder], rules: List[Rule], folder=None) -> Inl
                 [
                     InlineKeyboardButton(
                         "⬆️ Вверх",
-                        callback_data=f"folder:{folder.parent.id}" if folder.parent else "rules",
+                        callback_data=f"folder:{folder.parent.id}"
+                        if folder.parent
+                        else "rules",
                     )
                 ],
                 [
@@ -120,12 +129,12 @@ def who_notify_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup.from_column(buttons)
 
 
-def skip_keyboard() -> ReplyKeyboardMarkup:
+def skip_keyboard() -> InlineKeyboardMarkup:
     buttons = [
-        KeyboardButton("ПРОПУСТИТЬ"),
+        InlineKeyboardButton("ПРОПУСТИТЬ", callback_data="skip"),
     ]
 
-    return ReplyKeyboardMarkup.from_column(buttons)
+    return InlineKeyboardMarkup.from_column(buttons)
 
 
 def notify_myself_keyboard() -> InlineKeyboardMarkup:
