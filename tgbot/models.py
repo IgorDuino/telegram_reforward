@@ -22,7 +22,9 @@ class User(models.Model):
     username = models.CharField(max_length=32, null=True, blank=True)
     first_name = models.CharField(max_length=256, null=True, blank=True)
     last_name = models.CharField(max_length=256, null=True, blank=True)
-    language_code = models.CharField(max_length=8, null=True, blank=True)  # Telegram client's lang
+    language_code = models.CharField(
+        max_length=8, null=True, blank=True
+    )  # Telegram client's lang
 
     deep_link = models.CharField(max_length=64, null=True, blank=True)
 
@@ -46,12 +48,18 @@ class User(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"@{self.username} (id: {self.user_id})" if self.username else f"{self.user_id}"
+        return (
+            f"@{self.username} (id: {self.user_id})"
+            if self.username
+            else f"{self.user_id}"
+        )
 
     @classmethod
     async def get_user_and_created(cls, update, context):
         data = await utils.extract_user_data_from_update(update)
-        u, created = await cls.objects.aupdate_or_create(user_id=data["user_id"], defaults=data)
+        u, created = await cls.objects.aupdate_or_create(
+            user_id=data["user_id"], defaults=data
+        )
 
         if (
             created
@@ -131,7 +139,11 @@ class User(models.Model):
     def tg_str(self) -> str:
         if self.username:
             return f"@{self.username}"
-        return f"{self.first_name} {self.last_name}" if self.last_name else f"{self.first_name}"
+        return (
+            f"{self.first_name} {self.last_name}"
+            if self.last_name
+            else f"{self.first_name}"
+        )
 
 
 class Folder(models.Model):
