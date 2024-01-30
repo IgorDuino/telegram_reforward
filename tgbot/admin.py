@@ -9,6 +9,8 @@ from .forms import BroadcastMessageForm, BroadcastPhotoForm
 from .models import User, Filter, Rule, Forwarding, Folder, FilterTriggerTemplate
 from .tasks.broadcast import broadcast_message, broadcast_photo
 
+from asgiref.sync import async_to_sync
+
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
@@ -43,7 +45,9 @@ class UserAdmin(admin.ModelAdmin):
             user_ids = list(set(u.user_id for u in queryset))
             random.shuffle(user_ids)
             broadcast_message.delay(message=broadcast_message_text, user_ids=user_ids)
-            self.message_user(request, f"Broadcasting of {len(queryset)} messages has been started")
+            self.message_user(
+                request, f"Broadcasting of {len(queryset)} messages has been started"
+            )
 
             return HttpResponseRedirect(request.get_full_path())
 
@@ -83,7 +87,8 @@ class UserAdmin(admin.ModelAdmin):
 
             self.message_user(
                 request,
-                "Broadcasting of photo and text to %d users just started" % len(queryset),
+                "Broadcasting of photo and text to %d users just started"
+                % len(queryset),
             )
             return HttpResponseRedirect(request.get_full_path())
 
@@ -124,14 +129,17 @@ class RuleAdmin(admin.ModelAdmin):
 
     actions = ["enable", "disable"]
 
-    async def enable(self, request, queryset):
+    def enable(self, request, queryset):
         for rule in queryset:
-            await rule.enable()
+            rule: Rule
+            async_to_sync(rule.enable)()
+
         self.message_user(request, f"{len(queryset)} rules enabled")
 
-    async def disable(self, request, queryset):
+    def disable(self, request, queryset):
         for rule in queryset:
-            await rule.disable()
+            rule: Rule
+            async_to_sync(rule.disable)()
         self.message_user(request, f"{len(queryset)} rules disabled")
 
 
