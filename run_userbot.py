@@ -193,12 +193,6 @@ async def toggle_forwarding_handler(client: Client, message: Message):
             f"хотите управлять]__**\n{ids}\n\nНужнно ввести команду, пробел id. Например /onfr 1"
         )
 
-    else:
-        await message.reply_text(
-            "#reforwarder\n**__[У вас нет прав для управления пересылкой в этом чате "
-            "или на этот чат не настроены пересылки]__**"
-        )
-
 
 @app.on_message(filters=filters.command("getid") & filters.user(settings.TELEGRAM_ID))
 async def getid_handler(client: Client, message: Message):
