@@ -28,7 +28,7 @@ def rules_keyboard(
         buttons.append(
             [
                 InlineKeyboardButton(
-                    f"[{i}] {'🟢' if rule.is_active else '🔴'} {rule.name}",
+                    f"[{i + 1}] {'🟢' if rule.is_active else '🔴'} {rule.name}",
                     callback_data=f"rule:{rule.id}",
                 )
             ]
