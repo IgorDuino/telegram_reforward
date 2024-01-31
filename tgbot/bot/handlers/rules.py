@@ -21,13 +21,36 @@ async def rules_handler(update: Update, context: CallbackContext):
     u = await User.get_user(update, context)
 
     folder = None
-    if "folder" in update.callback_query.data and "nofolder" not in update.callback_query.data:
+    if (
+        "folder" in update.callback_query.data
+        and "nofolder" not in update.callback_query.data
+    ):
         folder = await Folder.objects.aget(id=update.callback_query.data.split(":")[1])
-        rules = [rule async for rule in Rule.objects.filter(folder=folder).all()]
-        folders = [folder async for folder in Folder.objects.filter(parent=folder).all()]
+        rules = [
+            rule
+            async for rule in Rule.objects.filter(folder=folder)
+            .order_by("created_at")
+            .all()
+        ]
+        folders = [
+            folder
+            async for folder in Folder.objects.filter(parent=folder)
+            .order_by("created_at")
+            .all()
+        ]
     else:
-        rules = [rule async for rule in Rule.objects.filter(folder=None).all()]
-        folders = [folder async for folder in Folder.objects.filter(parent=None).all()]
+        rules = [
+            rule
+            async for rule in Rule.objects.filter(folder=None)
+            .order_by("created_at")
+            .all()
+        ]
+        folders = [
+            folder
+            async for folder in Folder.objects.filter(parent=None)
+            .order_by("created_at")
+            .all()
+        ]
 
     if len(rules) + len(folders) == 0:
         await update.callback_query.edit_message_text(
