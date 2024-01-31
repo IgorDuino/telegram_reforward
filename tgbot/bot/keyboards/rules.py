@@ -162,7 +162,7 @@ def chat_members_control_keyboard() -> InlineKeyboardMarkup:
             "Участники чата A", callback_data="chat_members_control:a"
         ),
         InlineKeyboardButton(
-            "Участники чата A", callback_data="chat_members_control:b"
+            "Участники чата B", callback_data="chat_members_control:b"
         ),
         InlineKeyboardButton(
             "Участники обоих чатов", callback_data="chat_members_control:ab"
