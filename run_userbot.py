@@ -109,24 +109,6 @@ def deleted_messages_handler(client: Client, messages: list[Message]):
 
             forwarding.delete()
 
-        for forwarding in Forwarding.objects.filter(new_message_id=message.id).all():
-            try:
-                client.delete_messages(
-                    chat_id=forwarding.rule.a_chat_id,
-                    message_ids=forwarding.original_message_id,
-                )
-            except Exception as e:
-                pass
-            try:
-                client.delete_messages(
-                    chat_id=forwarding.rule.b_chat_id,
-                    message_ids=forwarding.original_message_id,
-                )
-            except Exception as e:
-                pass
-
-            forwarding.delete()
-
 
 @app.on_message(
     filters=filters.command(
