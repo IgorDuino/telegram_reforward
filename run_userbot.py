@@ -385,7 +385,7 @@ async def message_handler(client: Client, message: Message):
                 skip = True
                 break
 
-            if filter.action == FilterActionEnum.DISABLE_RULE:
+            elif filter.action == FilterActionEnum.DISABLE_RULE:
                 skip = True
                 await rule.disable()
 
@@ -398,7 +398,7 @@ async def message_handler(client: Client, message: Message):
 
                 break
 
-            if filter.action == FilterActionEnum.REPLACE:
+            elif filter.action == FilterActionEnum.REPLACE:
                 message = filter.apply_on_message(message)
 
         if skip:
@@ -470,11 +470,21 @@ async def message_handler(client: Client, message: Message):
                     if not filter.is_match_on_message(reply_to_message):
                         continue
 
-                    if filter.action in [
-                        FilterActionEnum.SKIP,
-                        FilterActionEnum.DISABLE_RULE,
-                    ]:
+                    if filter.action == FilterActionEnum.SKIP:
                         skip = True
+                        break
+
+                    elif filter.action == FilterActionEnum.DISABLE_RULE:
+                        skip = True
+                        await rule.disable()
+
+                        if rule.notify_myself:
+                            await bot.send_message(
+                                chat_id=settings.TELEGRAM_ID,
+                                text=f"Пересылка {rule} отключена, так как сработал фильтр {filter}",
+                                reply_markup=notification_keyboard(rule),
+                            )
+
                         break
 
                     elif filter.action == FilterActionEnum.REPLACE:
