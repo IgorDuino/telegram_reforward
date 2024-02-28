@@ -307,3 +307,9 @@ class Forwarding(models.Model):
     new_message_id = models.BigIntegerField()
     rule = models.ForeignKey(Rule, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class MediaGroupForwarding(models.Model):
+    media_group_id = models.CharField(max_length=50)
+    rule = models.ForeignKey(Rule, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)

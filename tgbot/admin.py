@@ -6,7 +6,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
 from .forms import BroadcastMessageForm, BroadcastPhotoForm
-from .models import User, Filter, Rule, Forwarding, Folder, FilterTriggerTemplate
+from .models import User, Filter, Rule, Forwarding, Folder, FilterTriggerTemplate, MediaGroupForwarding
 from .tasks.broadcast import broadcast_message, broadcast_photo
 
 from asgiref.sync import async_to_sync
@@ -160,6 +160,11 @@ class FolderAdmin(admin.ModelAdmin):
 class FilterTriggerTemplateAdmin(admin.ModelAdmin):
     list_display = ["name", "trigger"]
     search_fields = ("name", "trigger")
+
+
+@admin.register(MediaGroupForwarding)
+class FilterTriggerTemplateAdmin(admin.ModelAdmin):
+    list_display = ["media_group_id", "rule"]
 
 
 admin.site.site_header = "Telegram Userbot Admin"
