@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+from pyrogram.filters import caption
 
 load_dotenv()
 
@@ -12,20 +13,18 @@ from django.db.models import Q
 
 import pyrogram.errors
 from pyrogram import Client, filters, idle
-from pyrogram.types import Message, Reaction
+from pyrogram.types import Message
 from pyrogram.enums import ParseMode
 import logging
-from tgbot.models import User, Filter, FilterActionEnum, Rule, Forwarding
+from tgbot.models import User, Filter, FilterActionEnum, Rule, Forwarding, MediaGroupForwarding
 from pyrogram_utils import copy
 
 import telegram
-from telegram import InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import InlineKeyboardMarkup
 
 from asgiref.sync import sync_to_async
 
 from typing import List
-
-import datetime
 
 
 bot = telegram.Bot(settings.TELEGRAM_TOKEN)
@@ -74,6 +73,7 @@ app = Client(
     phone_number=settings.PHONE_NUMBER,
     api_id=settings.TELEGRAM_API_ID,
     api_hash=settings.TELEGRAM_API_HASH,
+    workers=1
 )
 
 app.start()
@@ -376,6 +376,11 @@ async def message_handler(client: Client, message: Message):
 
     async for rule in rules:
         skip = False
+
+        if (message.media_group_id and
+                await MediaGroupForwarding.objects.filter(rule=rule, media_group_id=message.media_group_id).aexists()):
+            continue
+
         filters = Filter.objects.filter(Q(rule=None) | Q(rule=rule)).all()
         async for filter in filters:
             if not filter.is_match_on_message(message):
@@ -385,7 +390,7 @@ async def message_handler(client: Client, message: Message):
                 skip = True
                 break
 
-            if filter.action == FilterActionEnum.DISABLE_RULE:
+            elif filter.action == FilterActionEnum.DISABLE_RULE:
                 skip = True
                 await rule.disable()
 
@@ -398,7 +403,7 @@ async def message_handler(client: Client, message: Message):
 
                 break
 
-            if filter.action == FilterActionEnum.REPLACE:
+            elif filter.action == FilterActionEnum.REPLACE:
                 message = filter.apply_on_message(message)
 
         if skip:
@@ -450,7 +455,7 @@ async def message_handler(client: Client, message: Message):
                 reply_to_message_id = forwarding_b.original_message_id
 
             else:
-                # message wasnt forwarded by userbot, copy it
+                # message wasn't forwarded by userbot, copy it
 
                 reply_to_message = message.reply_to_message
 
@@ -470,11 +475,21 @@ async def message_handler(client: Client, message: Message):
                     if not filter.is_match_on_message(reply_to_message):
                         continue
 
-                    if filter.action in [
-                        FilterActionEnum.SKIP,
-                        FilterActionEnum.DISABLE_RULE,
-                    ]:
+                    if filter.action == FilterActionEnum.SKIP:
                         skip = True
+                        break
+
+                    elif filter.action == FilterActionEnum.DISABLE_RULE:
+                        skip = True
+                        await rule.disable()
+
+                        if rule.notify_myself:
+                            await bot.send_message(
+                                chat_id=settings.TELEGRAM_ID,
+                                text=f"Пересылка {rule} отключена, так как сработал фильтр {filter}",
+                                reply_markup=notification_keyboard(rule),
+                            )
+
                         break
 
                     elif filter.action == FilterActionEnum.REPLACE:
@@ -508,23 +523,78 @@ async def message_handler(client: Client, message: Message):
 
                 reply_to_message_id = reply_to_message.id
 
-        new_message = await copy(
-            message=message,
-            chat_id=chat_id,
-            reply_to_message_id=reply_to_message_id,
-        )
+        if message.media_group_id:
+            media_group = await client.get_media_group(message.chat.id, message.id)
+            media_group_ids = []
+            captions = []
+            for message_from_group in media_group:
+                media_group_ids.append(message_from_group.id)
+                captions.append(message_from_group.caption if message_from_group.caption
+                                                              and message_from_group.caption != "None"
+                                                              and not type(captions) is str else "")
+            for i, caption in enumerate(captions):
+                async for filter in filters:
+                    if not filter.is_match(caption):
+                        continue
 
-        if new_message:
-            new_message: Message
-            await Forwarding.objects.acreate(
-                original_message_id=message.id,
-                new_message_id=new_message.id,
-                rule=rule,
+                    if filter.action == FilterActionEnum.SKIP:
+                        skip = True
+                        break
+
+                    elif filter.action == FilterActionEnum.DISABLE_RULE:
+                        skip = True
+                        await rule.disable()
+
+                        if rule.notify_myself:
+                            await bot.send_message(
+                                chat_id=settings.TELEGRAM_ID,
+                                text=f"Пересылка {rule} отключена, так как сработал фильтр {filter}",
+                                reply_markup=notification_keyboard(rule),
+                            )
+
+                        break
+
+                    elif filter.action == FilterActionEnum.REPLACE:
+                        captions[i] = filter.apply(caption)
+
+            if skip:
+                continue
+
+            new_media_group = await client.copy_media_group(chat_id=chat_id,
+                                                            from_chat_id=message.chat.id,
+                                                            message_id=message.id,
+                                                            captions=captions)
+            new_media_group_ids = [message.id for message in new_media_group]
+
+            for i in range(len(media_group_ids)):
+                await Forwarding.objects.acreate(
+                    original_message_id=media_group_ids[i],
+                    new_message_id=new_media_group_ids[i],
+                    rule=rule
+                )
+
+            await MediaGroupForwarding.objects.acreate(
+                media_group_id=message.media_group_id,
+                rule=rule
             )
-            logger.info(f"Forwarded message {message.id} to {chat_id}")
-
         else:
-            logger.warning(f"Failed to forward message {message.id} to {chat_id}")
+            new_message = await copy(
+                message=message,
+                chat_id=chat_id,
+                reply_to_message_id=reply_to_message_id,
+            )
+
+            if new_message:
+                new_message: Message
+                await Forwarding.objects.acreate(
+                    original_message_id=message.id,
+                    new_message_id=new_message.id,
+                    rule=rule,
+                )
+                logger.info(f"Forwarded message {message.id} to {chat_id}")
+
+            else:
+                logger.warning(f"Failed to forward message {message.id} to {chat_id}")
 
 
 idle()
