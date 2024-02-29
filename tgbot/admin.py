@@ -116,6 +116,7 @@ class ForwardingAdmin(admin.ModelAdmin):
 class RuleAdmin(admin.ModelAdmin):
     list_display = [
         "id",
+        "name",
         "a_chat_id",
         "b_chat_id",
         "direction",
@@ -124,8 +125,8 @@ class RuleAdmin(admin.ModelAdmin):
         "notify_b",
         "signature_direction",
     ]
-    list_filter = ["direction", "folder", "is_active"]
-    search_fields = ("a_chat_id", "b_chat_id")
+    list_filter = ["is_active", "direction", "folder"]
+    search_fields = ("name", "a_chat_id", "b_chat_id")
 
     actions = ["enable", "disable"]
 
