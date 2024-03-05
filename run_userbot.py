@@ -224,7 +224,7 @@ async def edited_message_handler(client: Client, message: Message):
             else forwarding.original_message_id
         )
 
-        filters = Filter.objects.filter(Q(rule=None) | Q(rule=rule))
+        filters = Filter.objects.filter((Q(rule=None) | Q(rule=rule)) & Q(is_active=True))
 
         skip = False
 
@@ -363,7 +363,7 @@ async def message_handler(client: Client, message: Message):
                 await MediaGroupForwarding.objects.filter(rule=rule, media_group_id=message.media_group_id).aexists()):
             continue
 
-        filters = Filter.objects.filter(Q(rule=None) | Q(rule=rule)).all()
+        filters = Filter.objects.filter((Q(rule=None) | Q(rule=rule)) & Q(is_active=True))
         async for filter in filters:
             if not filter.is_match_on_message(message):
                 continue
@@ -451,7 +451,7 @@ async def message_handler(client: Client, message: Message):
                         skip = True
                         break
 
-                filters = Filter.objects.filter(Q(rule=None) | Q(rule=rule)).all()
+                filters = Filter.objects.filter((Q(rule=None) | Q(rule=rule)) & Q(is_active=True))
 
                 async for filter in filters:
                     if not filter.is_match_on_message(reply_to_message):

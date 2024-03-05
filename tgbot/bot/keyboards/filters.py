@@ -17,7 +17,7 @@ def filters_keyboard(filters: List[Filter], rule=None) -> InlineKeyboardMarkup:
         buttons.append(
             [
                 InlineKeyboardButton(
-                    f"[{filter_.name if filter_.name else filter_.id}]",
+                    f"{'🟢' if filter_.is_active else '🔴'} [{filter_.name if filter_.name else filter_.id}]",
                     callback_data=f"filter:{filter_.id}",
                 )
             ]
@@ -41,6 +41,12 @@ def filter_keyboard(filter_: Filter) -> InlineKeyboardMarkup:
             InlineKeyboardButton(
                 "🗑 Удалить фильтр",
                 callback_data=f"delete:filter:{filter_.id}",
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "Отключить фильтр" if filter_.is_active else "Включить фильтр",
+                callback_data=f"toggle:filter:0:{filter_.id}" if filter_.is_active else f"toggle:filter:1:{filter_.id}",
             )
         ],
         [

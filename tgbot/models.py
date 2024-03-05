@@ -244,6 +244,7 @@ class Filter(models.Model):
         choices=FilterActionEnum.choices,
         default=FilterActionEnum.REPLACE,
     )
+    is_active = models.BooleanField(default=True)
     replacement = models.CharField(max_length=512, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

@@ -146,8 +146,8 @@ class RuleAdmin(admin.ModelAdmin):
 
 @admin.register(Filter)
 class FilterAdmin(admin.ModelAdmin):
-    list_display = ["regex", "action", "replacement", "rule"]
-    list_filter = ["action", "rule"]
+    list_display = ["regex", "action", "replacement", "rule", "is_active"]
+    list_filter = ["action", "rule", "is_active"]
     search_fields = ("regex", "replacement")
 
 

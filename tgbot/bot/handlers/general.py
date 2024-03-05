@@ -44,6 +44,13 @@ async def toggle_handler(update: Update, context: CallbackContext):
         u.is_forwarding_enabled = bool(int(update.callback_query.data.split(":")[2]))
         await u.asave()
 
+    elif a == "filter":
+        id = int(update.callback_query.data.split(":")[3])
+
+        filter = await Filter.objects.aget(id=id)
+        filter.is_active = bool(int(update.callback_query.data.split(":")[2]))
+        await filter.asave()
+
     await update.callback_query.edit_message_text(
         text=m.DONE,
         reply_markup=start_keyboard(u.is_forwarding_enabled),
