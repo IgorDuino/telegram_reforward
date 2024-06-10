@@ -25,8 +25,8 @@ async def check_and_set_webhook():
     else:
         print("Webhook already set")
 
-    await bot.send_message(chat_id=TELEGRAM_ID, text="Bot started")
-    await bot.send_message(chat_id=TELEGRAM_ADMIN_ID, text="Bot started")
+    await bot.send_message(chat_id=TELEGRAM_ID, text="Bot started /start")
+    await bot.send_message(chat_id=TELEGRAM_ADMIN_ID, text="Bot started /start")
 
     subprocess.check_output("docker compose kill celery && docker compose up -d celery", shell=True, cwd="/reforward")
 
