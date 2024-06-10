@@ -38,3 +38,14 @@ async def start_handler(update: Update, context: CallbackContext):
     )
 
     return ConversationHandler.END
+
+
+async def compose_restart(update: Update, context: CallbackContext):
+    await update.callback_query.edit_message_text(
+        text=m.RESTART,
+    )
+
+    import os
+    os.system("cd /reforward && docker compose restart")
+
+    return ConversationHandler.END

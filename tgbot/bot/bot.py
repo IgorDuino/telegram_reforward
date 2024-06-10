@@ -2,6 +2,7 @@ import pytz
 import asyncio
 
 import telegram
+from telegram import Bot
 from telegram.ext import (
     Defaults,
     Application,
@@ -13,9 +14,9 @@ from telegram.ext import (
 from telegram.ext import filters
 from telegram.constants import ParseMode
 
-from reforward.settings import TELEGRAM_TOKEN
+from reforward.settings import TELEGRAM_TOKEN, TELEGRAM_ADMIN_ID, TELEGRAM_ID
 
-from tgbot.bot.handlers.start import start_handler
+from tgbot.bot.handlers.start import start_handler, compose_restart
 from tgbot.bot.handlers.rules import rules_handler, rule_handler
 from tgbot.bot.handlers.filters import filters_handler, filter_handler
 from tgbot.bot.handlers.general import (
@@ -64,6 +65,7 @@ filterwarnings(
 def setup_application(app):
     app.add_handler(CommandHandler("start", start_handler))
     app.add_handler(CallbackQueryHandler(start_handler, pattern="start"))
+    app.add_handler(CallbackQueryHandler(compose_restart, pattern="compose_restart"))
 
     add_filter_conv_handler = ConversationHandler(
         per_user=True,
@@ -191,7 +193,7 @@ defaults = Defaults(
 application = Application.builder().token(TELEGRAM_TOKEN).defaults(defaults).build()
 setup_application(application)
 loop = asyncio.get_event_loop()
-bot = application.bot
+bot: Bot = application.bot
 
 
 def run_polling():

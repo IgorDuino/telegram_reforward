@@ -12,6 +12,7 @@ def start_keyboard(enabled: bool) -> InlineKeyboardMarkup:
             "Отключить пересылку" if enabled else "Включить пересылку",
             callback_data="toggle:forwarding:0" if enabled else "toggle:forwarding:1",
         ),
+        InlineKeyboardButton("Перезагрузить систему", callback_data="compose_restart"),
     ]
 
     return InlineKeyboardMarkup.from_column(buttons)

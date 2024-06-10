@@ -1,8 +1,11 @@
-from django.apps import AppConfig
-from reforward.settings import WEBHOOK_URL
 import asyncio
 import logging
+import subprocess
 import sys
+
+from django.apps import AppConfig
+
+from reforward.settings import WEBHOOK_URL, TELEGRAM_ADMIN_ID, TELEGRAM_ID
 
 logger = logging.getLogger("bot")
 
@@ -21,6 +24,11 @@ async def check_and_set_webhook():
         await asyncio.sleep(4)
     else:
         print("Webhook already set")
+
+    await bot.send_message(chat_id=TELEGRAM_ID, text="Bot started")
+    await bot.send_message(chat_id=TELEGRAM_ADMIN_ID, text="Bot started")
+
+    subprocess.check_output("docker compose kill celery && docker compose up -d celery", shell=True, cwd="/reforward")
 
 
 class TgbotConfig(AppConfig):
