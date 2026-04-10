@@ -19,7 +19,7 @@ services:
     restart: always
     command: bash -c "python manage.py migrate && gunicorn --bind :8000 --worker-class uvicorn.workers.UvicornWorker reforward.asgi:application"
     ports:
-      - '8000:8000'
+      - '${WEB_PORT:-8000}:8000'
     env_file:
       - ./.env
     volumes:
