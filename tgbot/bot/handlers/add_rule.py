@@ -2,10 +2,28 @@ import logging
 
 from telegram.ext import CallbackContext
 from telegram import Update, ReplyKeyboardRemove
+from telegram import (
+    MessageOriginUser,
+    MessageOriginChat,
+    MessageOriginChannel,
+)
 
 from tgbot.bot import message_texts as m
 from telegram import Bot, Message
 from tgbot.models import Rule, Folder
+
+
+def _extract_forwarded_chat_id(message: Message):
+    origin = getattr(message, "forward_origin", None)
+    if origin is None:
+        return None
+    if isinstance(origin, MessageOriginUser):
+        return origin.sender_user.id
+    if isinstance(origin, MessageOriginChat):
+        return origin.sender_chat.id
+    if isinstance(origin, MessageOriginChannel):
+        return origin.chat.id
+    return None
 
 from tgbot.bot.keyboards.general import cancel_keyboard
 from tgbot.bot.keyboards.rules import (
@@ -37,8 +55,9 @@ async def add_rule_handler(update: Update, context: CallbackContext):
 
 async def add_rule_handler_a_chat_id(update: Update, context: CallbackContext):
     try:
-        if update.message.forward_from:
-            context.user_data["a_chat_id"] = int(update.message.forward_from.id)
+        forwarded_id = _extract_forwarded_chat_id(update.message)
+        if forwarded_id is not None:
+            context.user_data["a_chat_id"] = int(forwarded_id)
         else:
             context.user_data["a_chat_id"] = int(update.message.text)
     except ValueError:
@@ -60,8 +79,9 @@ async def add_rule_handler_a_chat_id(update: Update, context: CallbackContext):
 
 async def add_rule_handler_b_chat_id(update: Update, context: CallbackContext):
     try:
-        if update.message.forward_from:
-            context.user_data["b_chat_id"] = int(update.message.forward_from.id)
+        forwarded_id = _extract_forwarded_chat_id(update.message)
+        if forwarded_id is not None:
+            context.user_data["b_chat_id"] = int(forwarded_id)
         else:
             context.user_data["b_chat_id"] = int(update.message.text)
     except ValueError:
